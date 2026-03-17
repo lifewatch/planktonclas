@@ -2,9 +2,10 @@
 API for the image classification package
 
 Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Original Author: Ignacio Heredia (CSIC)
+Maintainer: Wout Decrop (VLIZ)
+Contact: wout.decrop@vliz.be
+Github: woutdecrop / lifewatch
 
 Notes: Based on https://github.com/indigo-dc/plant-classification-theano/blob/package/plant_classification/api.py
 
@@ -23,35 +24,73 @@ import glob
 import json
 import os
 import re
+import sys
 import tempfile
-import warnings
+import threading
+import time
 import zipfile
 from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from aiohttp.web import HTTPException
 
-import numpy as np
-import pkg_resources
-import requests
-import tensorflow as tf
-from deepaas.model.v2.wrapper import UploadedFile
-from tensorflow.keras import backend as K
-from tensorflow.keras.models import load_model
-from webargs import fields
-import logging
+# Configure warnings early
+from planktonclas import warnings_config
+warnings_config.configure_warnings()
 
-import os
-from webargs import fields
+class LoadingBar:
+    def __init__(self, message="Loading"):
+        self.message = message
+        self.loading = False
+        self.thread = None
+
+    def animate(self):
+        spinner_chars = ['|', '/', '-', '\\']
+        idx = 0
+        while self.loading:
+            sys.stdout.write(f'\r{self.message} {spinner_chars[idx]}')
+            sys.stdout.flush()
+            idx = (idx + 1) % len(spinner_chars)
+            time.sleep(0.1)
+            
+    def start(self):
+        self.loading = True
+        self.thread = threading.Thread(target=self.animate)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def stop(self):
+        self.loading = False
+        if self.thread:
+            self.thread.join()
+        sys.stdout.write('\r' + ' ' * (len(self.message) + 10) + '\r')
+        sys.stdout.flush()
 
 
-from planktonclas import config, paths, test_utils, utils
-from planktonclas.data_utils import (
-    load_aphia_ids,
-    load_class_info,
-    load_class_names,
-)
-from planktonclas.train_runfile import train_fn
+_import_loader = LoadingBar("Initializing Phytoplankton Classifier...")
+_import_loader.start()
+
+try:
+    import numpy as np
+    import pkg_resources
+    import requests
+    import tensorflow as tf
+    from deepaas.model.v2.wrapper import UploadedFile
+    from tensorflow.keras import backend as K
+    from tensorflow.keras.models import load_model
+    from webargs import fields
+    import logging
+
+
+    from planktonclas import config, paths, test_utils, utils, model_utils
+    from planktonclas.data_utils import (
+        load_aphia_ids,
+        load_class_info,
+        load_class_names,
+    )
+    from planktonclas.train_runfile import train_fn
+finally:
+    _import_loader.stop()
 
 
 
@@ -63,10 +102,8 @@ logger.setLevel(LOG_LEVEL)
 
 NOW = str("{:%Y_%m_%d_%H_%M_%S}".format(datetime.now()))
 
-import os
 from marshmallow import fields, ValidationError
 from pathlib import Path
-from marshmallow import ValidationError
 
 loaded_ts, loaded_ckpt = None, None
 graph, model, conf, class_names, class_info, aphia_ids = (
@@ -83,6 +120,44 @@ allowed_extensions = set(
     ["png", "jpg", "jpeg", "PNG", "JPG", "JPEG"]
 )  # allow only certain file extensions
 top_K = 5  # number of top classes predictions to return
+
+
+def display_banner():
+    """Display ASCII art banner when model is ready."""
+    banner = r"""                                                                                                                              
+                                     +.                              
+                                   +:       :==.                     
+                                  %       .#.                        
+                                 #:*==*  *=                          
+                               -+**+*####.                           
+                              +********%%.                           
+                             +*******#**#+                           
+                          ********#%%####+                           
+                            .*====+==::=#%%*                         
+                            -%**   --::=-:.                          
+                            +=#.   -:::+.                            
+                    -+*++:  +.     +:::*                 
+                   :+.  .+- ==:   +::::*                        
+                   =-    == ::-+*+:::::*##-               
+                   .+.  :+-.-====-:::::+%#.                      
+                     ===*: :++::::-=:++*#=               
+                      -#. -+**:::=*++**%##+                          
+                     .=+-=   ##*:**#*%******=                        
+                     .=**+  =*++#************#-                      
+                       %@#*++****#********#+***#.                    
+                       .%*****. +*********##++*=                     
+                        .-##*    *%##%%%%%%#+##:                     
+                                +*###%##**+*###                      
+                               =++*#+**+++++*###-                    
+                             .++*****++++++++*##+                    
+                              :+*+#%++++++++*+.                ____________________________
+                                  ***  :###-                   |PHYTOPLANKTON CLASSIFIER   |        
+                                ::#**.  +**+                   |🔬 Model fully loaded      |       
+                               .%@+.: --@@@%                   |🚀 Listening on port 5000  |      
+                                       :.                      |___________________________|     
+                                                                     
+    """
+    logger.info(banner)
 
 
 def load_inference_model(timestamp=None, ckpt_name=None):
@@ -116,7 +191,7 @@ def load_inference_model(timestamp=None, ckpt_name=None):
             )
         )
     paths.timestamp = timestamp
-    print("Using TIMESTAMP={}".format(timestamp))
+    logger.info("✓ Loaded model timestamp: %s", timestamp)
 
     # Set the checkpoint model to use to make the prediction
     ckpt_list = os.listdir(paths.get_checkpoints_dir())
@@ -138,7 +213,7 @@ def load_inference_model(timestamp=None, ckpt_name=None):
                 ckpt_name, ckpt_list
             )
         )
-    print("Using CKPT_NAME={}".format(ckpt_name))
+    logger.info("✓ Loaded checkpoint: %s", ckpt_name)
 
     # Clear the previous loaded model
     tf.keras.backend.clear_session()
@@ -165,16 +240,24 @@ def load_inference_model(timestamp=None, ckpt_name=None):
         conf = json.load(f)
         update_with_saved_conf(conf)
 
-    # Load the model
-    model = load_model(
-        os.path.join(paths.get_checkpoints_dir(), ckpt_name),
-        custom_objects=utils.get_custom_objects(),
-        compile=False,
-        # Disable deserialization of training config
-    )
+    logger.info("Loading model weights...")
+    loader = LoadingBar("✓ Loading model weights...")
+    loader.start()
+    try:
+        # Load the model
+        model = load_model(
+            os.path.join(paths.get_checkpoints_dir(), ckpt_name),
+            custom_objects=utils.get_custom_objects(),
+            compile=False,
+            # Disable deserialization of training config
+        )
+    finally:
+        loader.stop()
 
     loaded_ts = timestamp
     loaded_ckpt = ckpt_name
+    logger.info("✓ Model fully loaded and ready for inference")
+    display_banner()
 
 
 def update_with_saved_conf(saved_conf):
@@ -217,6 +300,23 @@ def update_with_query_conf(user_args):
     config.conf_dict = config.get_conf_dict(conf=CONF)
 
 
+def get_image_files_recursive(directory):
+    """
+    Recursively find all image files in a directory.
+    Returns list of tuples: (full_path, original_filename)
+    """
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+    image_files = []
+    
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if os.path.splitext(file)[1].lower() in image_extensions:
+                full_path = os.path.join(root, file)
+                image_files.append((full_path, file))
+    
+    return image_files
+
+
 def catch_error(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -251,7 +351,7 @@ def warm():
     try:
         load_inference_model()
     except Exception as e:
-        print(e)
+        logger.debug("Model warm-up: %s", str(e))
 
 
 def prepare_files(directory):
@@ -287,13 +387,14 @@ def prepare_files(directory):
 def predict(**args):
     logger.debug("Predict with args: %s", args)
     try:
-        if not any([args["image"], args["zip"]]):
+        if not any([args.get("image"), args.get("zip")]):
             raise Exception(
-                "You must provide either 'image' or 'file_location' or 'zip' in the payload"
+                "You must provide either 'image' or 'zip' in the payload"
             )
 
-        if args["zip"]:
+        if args.get("zip"):
             # Check if zip file is provided
+            logger.info("▌ Processing ZIP file")
             zip_file = args["zip"]
 
             # Create a temporary directory to extract the files
@@ -304,37 +405,42 @@ def predict(**args):
                 ) as zip_ref:
                     zip_ref.extractall(temp_dir)
 
-                # Get the list of files extracted from the zip
-                folder_files = os.listdir(temp_dir)
+                # Recursively find all image files in extracted zip
+                image_files = get_image_files_recursive(temp_dir)
+                
+                if not image_files:
+                    raise ValueError("No image files found in the zip archive. "
+                                   "Supported formats: jpg, jpeg, png, gif, bmp, tiff, webp")
 
-                # Assign the list of files to args["files"]
-
+                # Create UploadedFile objects for each image
                 uploaded_files = []
-                for file in folder_files:
-                    file_path = os.path.join(temp_dir, file)
+                for file_path, original_filename in image_files:
                     uploaded_files.append(
                         UploadedFile(
                             name="data",
                             filename=file_path,
                             content_type="image/jpeg",
-                            original_filename=file,
+                            original_filename=original_filename,
                         )
                     )
 
                 # Assign the list of files to args["files"]
                 args["files"] = uploaded_files
+                logger.debug("Found %d image files in zip archive", len(image_files))
 
                 return predict_data(args)
-        elif args["image"]:
+        elif args.get("image"):
+            logger.info("▌ Processing single image")
             args["files"] = [
                 args["image"]
             ]  # patch until list is available
-            # raise RuntimeError("args files ", args["files"])
-            print(args["files"])
             return predict_data(args)
 
     except Exception as err:
-        raise HTTPException(reason=err) from err
+        logger.exception("Error in predict endpoint")
+        # Sanitize error message for HTTPException (cannot contain newlines)
+        error_msg = str(err).replace('\n', ' ').replace('\r', ' ')
+        raise HTTPException(reason=error_msg) from err
 
 
 def predict_data(args):
@@ -360,9 +466,15 @@ def predict_data(args):
                 ckpt_name=conf["testing"]["ckpt_name"],
             )
             conf = config.conf_dict
+        
+        # Ensure preprocess_mode is set based on model name
+        if "preprocess_mode" not in conf["model"]:
+            modelname = conf["model"].get("modelname", "Phytoplankton_EfficientNetV2B0")
+            conf["model"]["preprocess_mode"] = model_utils.model_modes.get(modelname, "tf")
+            logger.debug("Set preprocess_mode to: %s for model: %s", conf["model"]["preprocess_mode"], modelname)
+        
         # Create a list with the path to the images
         filenames = [f.filename for f in args["files"]]
-        print(filenames)
         original_filenames = [
             f.original_filename for f in args["files"]
         ]
@@ -382,13 +494,15 @@ def predict_data(args):
             pred_lab, pred_prob = np.squeeze(pred_lab), np.squeeze(
                 pred_prob
             )
-            print(pred_lab.shape, pred_prob.shape)
 
         return format_prediction(
             pred_lab, pred_prob, original_filenames
         )
     except Exception as err:
-        raise HTTPException(reason=err) from err
+        logger.exception("Error in predict_data function")
+        # Sanitize error message for HTTPException (cannot contain newlines)
+        error_msg = str(err).replace('\n', ' ').replace('\r', ' ')
+        raise HTTPException(reason=error_msg) from err
 
 
 def get_predictions_dir(CONF):
@@ -417,41 +531,47 @@ def get_predictions_dir(CONF):
 
 
 def format_prediction(labels, probabilities, original_filenames):
-    if aphia_ids is not None:
-        pred_aphia_ids = [aphia_ids[i] for i in labels]
-        pred_aphia_ids = [
-            aphia_id.tolist() for aphia_id in pred_aphia_ids
-        ]
-    else:
-        pred_aphia_ids = aphia_ids
-    class_index_map = {
-        index: class_name
-        for index, class_name in enumerate(class_names)
-    }
-    pred_lab_names = [
-        [class_index_map[label] for label in labels]
-        for labels in labels
-    ]
-    # pred_labels=[class_names[i] for i in labels]
-    pred_prob = probabilities
+    try:
+        if aphia_ids is not None:
+            pred_aphia_ids = [aphia_ids[i] for i in labels.flatten()]
+            pred_aphia_ids = [
+                aphia_id.tolist() for aphia_id in pred_aphia_ids
+            ]
+        else:
+            pred_aphia_ids = aphia_ids
+        class_index_map = {
+            index: class_name
+            for index, class_name in enumerate(class_names)
+        }
+        logger.debug("Labels shape: %s, Class index map size: %s", labels.shape, len(class_index_map))
+        
+        # Handle 2D array of predictions (N images × top_K predictions)
+        pred_lab_names = [[class_index_map[int(label)] for label in row] for row in labels]
+        
+        pred_prob = probabilities
 
-    pred_dict = {
-        "filenames": list(original_filenames),
-        "pred_lab": pred_lab_names,  # Use converted list
-        "pred_prob": pred_prob.tolist(),
-        "aphia_ids": pred_aphia_ids,
-    }
-    conf = config.conf_dict
-    ckpt_name = conf["testing"]["ckpt_name"]
-    split_name = "test"
-    pred_path = os.path.join(
-        get_predictions_dir(conf),
-        "{}+{}+top{}.json".format(ckpt_name, split_name, top_K),
-    )
-    with open(pred_path, "w") as outfile:
-        json.dump(pred_dict, outfile, sort_keys=True)
+        pred_dict = {
+            "filenames": list(original_filenames),
+            "pred_lab": pred_lab_names,
+            "pred_prob": pred_prob.tolist(),
+            "aphia_ids": pred_aphia_ids,
+        }
+        conf = config.conf_dict
+        ckpt_name = conf["testing"]["ckpt_name"]
+        split_name = "test"
+        pred_path = os.path.join(
+            get_predictions_dir(conf),
+            "{}+{}+top{}.json".format(ckpt_name, split_name, top_K),
+        )
+        with open(pred_path, "w") as outfile:
+            json.dump(pred_dict, outfile, sort_keys=True)
 
-    return pred_dict
+        return pred_dict
+    except Exception as e:
+        logger.exception("Error in format_prediction. labels shape=%s, probabilities shape=%s", 
+                        labels.shape if hasattr(labels, 'shape') else 'N/A',
+                        probabilities.shape if hasattr(probabilities, 'shape') else 'N/A')
+        raise
 
 
 def get_directory_choices(base_path="/srv/data/"):
@@ -464,7 +584,7 @@ def get_directory_choices(base_path="/srv/data/"):
         ]
         return directories
     except Exception as e:
-        print(f"Error accessing directories: {e}")
+        logger.warning("Error accessing directories: %s", str(e))
         return []
 
 
@@ -490,31 +610,47 @@ def train(**args):
     Train an image classifier
     """
     try:
-        logger.info("Training model...")
-        logger.debug("Train with args: %s", args)
-
         update_with_query_conf(user_args=args)
         CONF = config.conf_dict
         timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        config.print_conf_table(CONF)
-        K.clear_session()  # remove the model loaded for prediction
-
+        
+        # Print training startup banner
+        logger.info("="*70)
+        logger.info("🚀 Starting Phytoplankton Model Training")
+        logger.info("="*70)
+        logger.info("▌ Training timestamp: %s", timestamp)
+        logger.info("▌ Configuration Parameters:")
+        
+        # Clear session and validate
+        K.clear_session()
         validate_directory(args["images_directory"])
+        
+        # Print config table
+        config.print_conf_table(CONF)
+        
+        logger.info("")
+        logger.info("="*70)
+        logger.info("▌ Initializing training process...")
+        logger.info("="*70)
 
         train_fn(TIMESTAMP=timestamp, CONF=CONF)
 
+        logger.info("="*70)
+        logger.info("✓ Training completed successfully!")
+        logger.info("=" *70)
         return {"modelname": timestamp}
 
     except Exception as err:
-        logger.critical(err, exc_info=True)
-        raise HTTPException(reason=err) from err
+        logger.critical("✗ Training failed: %s", str(err), exc_info=True)
+        # Sanitize error message for HTTPException (cannot contain newlines)
+        error_msg = str(err).replace('\n', ' ').replace('\r', ' ')
+        raise HTTPException(reason=error_msg) from err
 
 
 def populate_parser(parser, default_conf):
     """
     Returns a arg-parse like parser.
     """
-    print("popu parser")
     for group, val in default_conf.items():
         for g_key, g_val in val.items():
             gg_keys = g_val.keys()

@@ -2,9 +2,10 @@
 Miscellaneous functions to plot.
 
 Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Original Author: Ignacio Heredia (CSIC)
+Maintainer: Wout Decrop (VLIZ)
+Contact: wout.decrop@vliz.be
+Github: woutdecrop / lifewatch
 """
 
 import json
@@ -14,12 +15,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import seaborn
 
-from planktonclas import paths, plot_utils
-
-# def create_pred_path(save_path, *sub_dirs):
-#     pred_path = save_path or os.path.join(paths.get_timestamped_dir(), *sub_dirs)
-#     os.makedirs(pred_path, exist_ok=True)
-#     return pred_path
+from planktonclas import paths
 
 
 def create_pred_path(save_path, dir="", weighted=False, **kwargs):
@@ -37,13 +33,11 @@ def create_pred_path(save_path, dir="", weighted=False, **kwargs):
     """
     value = next(iter(kwargs.values()))
     if weighted:
-        pred_path = save_path or os.path.join(
-            paths.get_results_dir(), dir, "confusion_weighted"
-        )
+        pred_path = save_path or os.path.join(paths.get_results_dir(), dir,
+                                              "confusion_weighted")
     else:
-        pred_path = save_path or os.path.join(
-            paths.get_results_dir(), dir, value
-        )
+        pred_path = save_path or os.path.join(paths.get_results_dir(), dir,
+                                              value)
 
     os.makedirs(pred_path, exist_ok=True)
     return pred_path
@@ -55,7 +49,10 @@ def plt_conf_matrix(conf_mat, labels=False):
         conf_mat,
         annot=False,
         square=True,
-        cbar_kws={"fraction": 0.046, "pad": 0.04},
+        cbar_kws={
+            "fraction": 0.046,
+            "pad": 0.04
+        },
         xticklabels=labels,
         yticklabels=labels,
         ax=ax,
@@ -103,21 +100,14 @@ def training_plots(conf, stats, show_val=True, show_ckpt=True):
 
     # Validation
     if (conf["training"]["use_validation"]) and show_val:
-        axs[0].plot(
-            stats["epoch"], stats["val_loss"], label="Validation"
-        )
-        axs[1].plot(
-            stats["epoch"], stats["val_accuracy"], label="Validation"
-        )
+        axs[0].plot(stats["epoch"], stats["val_loss"], label="Validation")
+        axs[1].plot(stats["epoch"], stats["val_accuracy"], label="Validation")
 
     # Model Checkpoints
     if (conf["training"]["ckpt_freq"] is not None) and show_ckpt:
         period = max(
             1,
-            int(
-                conf["training"]["ckpt_freq"]
-                * conf["training"]["epochs"]
-            ),
+            int(conf["training"]["ckpt_freq"] * conf["training"]["epochs"]),
         )
         ckpts = np.arange(0, conf["training"]["epochs"], period)
         for i, c in enumerate(ckpts):
@@ -125,9 +115,7 @@ def training_plots(conf, stats, show_val=True, show_ckpt=True):
             if i == 0:
                 label = "checkpoints"
             axs[0].axvline(c, linestyle="--", color="#f9d1e0")
-            axs[1].axvline(
-                c, linestyle="--", color="#f9d1e0", label=label
-            )
+            axs[1].axvline(c, linestyle="--", color="#f9d1e0", label=label)
 
     axs[1].set_ylim([0, 1])
     axs[0].set_xlabel("Epochs"), axs[0].set_title("Loss")
@@ -174,9 +162,7 @@ def multi_training_plots(timestamps, legend_loc="upper right"):
         # Validation
         if conf["training"]["use_validation"]:
             axs[2].plot(stats["epoch"], stats["val_loss"], label=ts)
-            axs[3].plot(
-                stats["epoch"], stats["val_accuracy"], label=ts
-            )
+            axs[3].plot(stats["epoch"], stats["val_accuracy"], label=ts)
 
     axs[1].set_ylim([0, 1])
     axs[3].set_ylim([0, 1])

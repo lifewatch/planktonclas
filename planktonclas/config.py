@@ -2,9 +2,10 @@
 Configuration script of the image classification application. It load configuration from a YAML file.
 
 Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Original Author: Ignacio Heredia (CSIC)
+Maintainer: Wout Decrop (VLIZ)
+Contact: wout.decrop@vliz.be
+Github: woutdecrop / lifewatch
 """
 
 import builtins
@@ -13,8 +14,8 @@ import textwrap
 
 import yaml
 
-
 from importlib import metadata
+
 MODEL_NAME = os.getenv("MODEL_NAME", default="planktonclas")
 MODEL_METADATA = metadata.metadata(MODEL_NAME)
 # Fix metadata for authors from pyproject parsing
@@ -27,7 +28,6 @@ _AUTHORS = MODEL_METADATA.get("Author", "").split(", ")
 _AUTHORS = [] if _AUTHORS == [""] else _AUTHORS
 _AUTHORS += MODEL_METADATA["Author-emails"].keys()
 MODEL_METADATA["Authors"] = sorted(_AUTHORS)
-
 
 homedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 conf_path = os.path.join(homedir, "etc", "config.yaml")
@@ -51,37 +51,26 @@ def check_conf(conf=CONF):
                 if not isinstance(g_val["value"], var_type):
                     raise TypeError(
                         "The selected value for {} must be a {}.".format(
-                            g_key, g_val["type"]
-                        )
-                    )
+                            g_key, g_val["type"]))
 
-            if ("choices" in gg_keys) and (
-                g_val["value"] not in g_val["choices"]
-            ):
+            if ("choices" in gg_keys) and (g_val["value"]
+                                           not in g_val["choices"]):
                 raise ValueError(
-                    "The selected value for {} is not an available choice.".format(
-                        g_key
-                    )
-                )
+                    "The selected value for {} is not an available choice.".
+                    format(g_key))
 
             if "range" in gg_keys:
-                if (g_val["range"][0] is not None) and (
-                    g_val["range"][0] > g_val["value"]
-                ):
+                if (g_val["range"][0] is not None) and (g_val["range"][0]
+                                                        > g_val["value"]):
                     raise ValueError(
-                        "The selected value for {} is lower than the minimal possible value.".format(
-                            g_key
-                        )
-                    )
+                        "The selected value for {} is lower than the minimal possible value."
+                        .format(g_key))
 
-                if (g_val["range"][1] != "None") and (
-                    g_val["range"][1] < g_val["value"]
-                ):
+                if (g_val["range"][1] != "None") and (g_val["range"][1]
+                                                      < g_val["value"]):
                     raise ValueError(
-                        "The selected value for {} is higher than the maximal possible value.".format(
-                            g_key
-                        )
-                    )
+                        "The selected value for {} is higher than the maximal possible value."
+                        .format(g_key))
 
     # Check augmentation dict
     for d_name in ["train_mode", "val_mode"]:
@@ -91,37 +80,31 @@ def check_conf(conf=CONF):
             continue
 
         for k in [
-            "h_flip",
-            "v_flip",
-            "stretch",
-            "crop",
-            "zoom",
-            "blur",
-            "pixel_noise",
-            "pixel_sat",
-            "cutout",
-            "rot",
+                "h_flip",
+                "v_flip",
+                "stretch",
+                "crop",
+                "zoom",
+                "blur",
+                "pixel_noise",
+                "pixel_sat",
+                "cutout",
+                "rot",
         ]:
             if not isinstance(d[k], float):
                 raise TypeError(
-                    "The type of the {} key in the {} augmentation dict must be float.".format(
-                        k, d_name
-                    )
-                )
+                    "The type of the {} key in the {} augmentation dict must be float."
+                    .format(k, d_name))
 
             if not (0 <= d[k] <= 1):
                 raise TypeError(
-                    "The {} key in the {} augmentation dict must be in the [0, 1] range.".format(
-                        k, d_name
-                    )
-                )
+                    "The {} key in the {} augmentation dict must be in the [0, 1] range."
+                    .format(k, d_name))
 
         if not isinstance(d["rot_lim"], int):
             raise TypeError(
-                "The {} key in the {} augmentation dict must be an int.".format(
-                    "rot_lim", d_name
-                )
-            )
+                "The {} key in the {} augmentation dict must be an int.".
+                format("rot_lim", d_name))
 
 
 check_conf()
@@ -158,22 +141,18 @@ def print_full_conf(conf=CONF):
             print("{}".format(g_key))
             for gg_key, gg_val in g_val.items():
                 print("{}{}".format(" " * 4, gg_key))
-                body = "\n".join(
-                    [
-                        "\n".join(
-                            textwrap.wrap(
-                                line,
-                                width=110,
-                                break_long_words=False,
-                                replace_whitespace=False,
-                                initial_indent=" " * 8,
-                                subsequent_indent=" " * 8,
-                            )
-                        )
-                        for line in str(gg_val).splitlines()
-                        if line.strip() != ""
-                    ]
-                )
+                body = "\n".join([
+                    "\n".join(
+                        textwrap.wrap(
+                            line,
+                            width=110,
+                            break_long_words=False,
+                            replace_whitespace=False,
+                            initial_indent=" " * 8,
+                            subsequent_indent=" " * 8,
+                        )) for line in str(gg_val).splitlines()
+                    if line.strip() != ""
+                ])
                 print(body)
             print("\n")
 
@@ -186,9 +165,5 @@ def print_conf_table(conf=conf_dict):
     print("=" * 75)
     for group, val in sorted(conf.items()):
         for g_key, g_val in sorted(val.items()):
-            print(
-                "{:<25}{:<30}{:<15} \n".format(
-                    group, g_key, str(g_val)
-                )
-            )
+            print("{:<25}{:<30}{:<15} \n".format(group, g_key, str(g_val)))
         print("-" * 75 + "\n")
