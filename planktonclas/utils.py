@@ -12,7 +12,11 @@ import logging
 import os
 import shutil
 import subprocess
+import logging
+import sys
 import time
+from contextlib import contextmanager
+from datetime import datetime
 from distutils.dir_util import copy_tree
 from multiprocessing import Process
 
@@ -34,6 +38,17 @@ def create_dir_tree():
     """
     dirs = paths.get_dirs()
     created_dirs = []
+    for d in dirs.values():
+        if not os.path.isdir(d):
+            os.makedirs(d)
+            created_dirs.append(d)
+
+    if created_dirs:
+        logger.info("[utils] Created %d dataset directories", len(created_dirs))
+        return
+    
+    if created_dirs:
+        logger.info("▌ Created %d dataset directories", len(created_dirs))
     for directory in dirs.values():
         if not os.path.isdir(directory):
             os.makedirs(directory)
@@ -41,6 +56,54 @@ def create_dir_tree():
 
     if created_dirs:
         logger.info("[utils] Created %d dataset directories", len(created_dirs))
+
+
+def progress_prefix(logger_name, tag):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return f"{timestamp} - {logger_name} - INFO - {tag} "
+
+
+class PrefixedProgressStream:
+    """Prefix stdout progress-bar lines so tqdm/Keras output aligns with logs."""
+
+    def __init__(self, logger_name, tag, stream):
+        self.logger_name = logger_name
+        self.tag = tag
+        self.stream = stream
+        self.at_line_start = True
+
+    def write(self, text):
+        if not text:
+            return 0
+
+        pieces = []
+        for char in text:
+            if self.at_line_start and char not in ("\n", "\r"):
+                pieces.append(progress_prefix(self.logger_name, self.tag))
+                self.at_line_start = False
+            pieces.append(char)
+            if char in ("\n", "\r"):
+                self.at_line_start = True
+
+        rendered = "".join(pieces)
+        self.stream.write(rendered)
+        return len(text)
+
+    def flush(self):
+        self.stream.flush()
+
+    def isatty(self):
+        return self.stream.isatty()
+
+
+@contextmanager
+def prefixed_stdout(logger_name, tag):
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = PrefixedProgressStream(logger_name, tag, original_stdout)
+        yield sys.stdout
+    finally:
+        sys.stdout = original_stdout
 
 
 def backup_splits():
@@ -79,6 +142,7 @@ class LR_scheduler(callbacks.LearningRateScheduler):
         current_lr = K.eval(self.model.optimizer.learning_rate)
         if epoch in self.epoch_milestones:
             new_lr = current_lr * self.lr_decay
+            logger.info("▌ Learning rate decayed to: %.2e", new_lr)
             logger.info("[train] Learning rate decayed to: %.2e", new_lr)
         else:
             new_lr = current_lr
@@ -166,17 +230,15 @@ def launch_tensorboard(port, logdir, host="0.0.0.0"):  # nosec
     if tensorboard_path is None:
         raise RuntimeError("TensorBoard executable not found in PATH.")
 
-    subprocess.call(
-        [
-            tensorboard_path,
-            "--logdir",
-            "{}".format(logdir),
-            "--port",
-            "{}".format(port),
-            "--host",
-            "{}".format(host),
-        ]
-    )
+    subprocess.call([
+        tensorboard_path,
+        "--logdir",
+        "{}".format(logdir),
+        "--port",
+        "{}".format(port),
+        "--host",
+        "{}".format(host),
+    ])
 
 
 def get_callbacks(CONF, use_lr_decay=True):
@@ -215,8 +277,7 @@ def get_callbacks(CONF, use_lr_decay=True):
             LR_scheduler(
                 lr_decay=CONF["training"]["lr_step_decay"],
                 epoch_milestones=milestones.tolist(),
-            )
-        )
+            ))
 
     if CONF["monitor"]["use_tensorboard"]:
         calls.append(
@@ -224,17 +285,19 @@ def get_callbacks(CONF, use_lr_decay=True):
                 log_dir=paths.get_logs_dir(),
                 write_graph=False,
                 profile_batch=0,
-            )
-        )
+            ))
 
         print(
             "Monitor your training in Tensorboard by executing the "
-            "following command on your console:"
+            "following comand on your console:"
         )
         print("    tensorboard --logdir={}".format(paths.get_logs_dir()))
 
+        # Get the full path to the 'fuser' executable
+        # fuser_path = shutil.which("fuser")
         port = os.getenv("monitorPORT", 6006)
         port = int(port) if len(str(port)) >= 4 else 6006
+
 
         try:
             if os.name != "nt":
@@ -242,9 +305,8 @@ def get_callbacks(CONF, use_lr_decay=True):
                 if fuser_path:
                     subprocess.run([fuser_path, "-k", f"{port}/tcp"])
         except Exception as e:
-            print(
-                f"Warning: Could not kill existing TensorBoard on port {port}. {e}"
-            )
+            print(f"Warning: Could not kill existing TensorBoard on port {port}. {e}")
+
         process = Process(
             target=launch_tensorboard,
             args=(port, paths.get_logs_dir()),
@@ -252,18 +314,16 @@ def get_callbacks(CONF, use_lr_decay=True):
         )
         process.start()
 
+
+
     if CONF["monitor"]["use_remote"]:
         calls.append(callbacks.RemoteMonitor())
 
-    if (
-        CONF["training"]["use_validation"]
-        and CONF["training"]["use_early_stopping"]
-    ):
+    if (CONF["training"]["use_validation"]
+            and CONF["training"]["use_early_stopping"]):
         calls.append(
-            callbacks.EarlyStopping(
-                patience=int(0.1 * CONF["training"]["epochs"])
-            )
-        )
+            callbacks.EarlyStopping(patience=int(0.1 *
+                                                 CONF["training"]["epochs"])))
 
     if CONF["training"]["ckpt_freq"] is not None:
         calls.append(
@@ -272,16 +332,13 @@ def get_callbacks(CONF, use_lr_decay=True):
                     paths.get_checkpoints_dir(),
                     "epoch-{epoch:02d}.hdf5",
                 ),
-                verbose=1,
+                verbose=0,
                 period=max(
                     1,
-                    int(
-                        CONF["training"]["ckpt_freq"]
-                        * CONF["training"]["epochs"]
-                    ),
+                    int(CONF["training"]["ckpt_freq"] *
+                        CONF["training"]["epochs"]),
                 ),
-            )
-        )
+            ))
 
     if not calls:
         calls = None

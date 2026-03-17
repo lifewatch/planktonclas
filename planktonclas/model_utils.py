@@ -129,52 +129,6 @@ def create_model(CONF):
     return model, base_model
 
 
-def save_to_pb(keras_model, export_path):
-    """
-    Save keras model to protobuf for Tensorflow Serving.
-    Source: https://medium.com/@johnsondsouza23/export-keras-model-to-protobuf-for-tensorflow-serving-101ad6c65142
-
-    Parameters
-    ----------
-    keras_model: Keras model instance
-    export_path: str
-    """
-
-    # Set the learning phase to Test since the model is already trained.
-    K.set_learning_phase(0)
-
-    # Build the Protocol Buffer SavedModel at 'export_path'
-    builder = saved_model_builder.SavedModelBuilder(export_path)
-
-    # Create prediction signature to be used by TensorFlow Serving Predict API
-    signature = predict_signature_def(
-        inputs={"images": keras_model.input},
-        outputs={"scores": keras_model.output},
-    )
-
-    with K.get_session() as sess:
-        # Save the meta graph and the variables
-        builder.add_meta_graph_and_variables(
-            sess=sess,
-            tags=[tag_constants.SERVING],
-            signature_def_map={"predict": signature},
-        )
-
-    builder.save()
-
-
-def export_h5_to_pb(path_to_h5, export_path):
-    """
-    Transform Keras model to protobuf
-
-    Parameters
-    ----------
-    path_to_h5
-    export_path
-    """
-    model = load_model(path_to_h5)
-    save_to_pb(model, export_path)
-
 
 def save_conf(conf):
     """

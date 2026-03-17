@@ -78,9 +78,7 @@ def get_predictions_dir():
     #         return os.path.join(output_directory)
     if file_location is not None:
         if os.path.exists(file_location):
-            return os.path.join(
-                os.path.dirname(file_location), "predictions"
-            )
+            return os.path.join(os.path.dirname(file_location), "predictions")
     else:
         if output_directory is None:
             # Define your get_timestamped_dir() function accordingly

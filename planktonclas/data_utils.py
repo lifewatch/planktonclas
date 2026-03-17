@@ -14,6 +14,7 @@ import os
 import queue
 import random
 import subprocess
+import sys
 import threading
 import warnings
 from multiprocessing import Pool
@@ -26,8 +27,9 @@ import albumentations as A
 import cv2
 import numpy as np
 import requests
-from tensorflow.keras.utils import Sequence, to_categorical
 from tqdm import tqdm
+from tensorflow.keras.utils import Sequence, to_categorical
+from planktonclas import utils
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -41,9 +43,7 @@ def create_data_splits(splits_dir, im_dir, split_ratios=[0.7, 0.15, 0.15]):
     file_paths = []
 
     logger.info("[data] Scanning images in %s", im_dir.replace("\\", "/").split("/")[-3:])
-    for root, _, files in tqdm(
-        os.walk(im_dir), desc="Scanning folders", unit="folder"
-    ):
+    for root, _, files in os.walk(im_dir):
         for file in files:
             file_path = os.path.join(root, file)
             relative_path = os.path.relpath(file_path, im_dir)
@@ -121,15 +121,19 @@ def create_data_splits(splits_dir, im_dir, split_ratios=[0.7, 0.15, 0.15]):
 
     # Write the class names to a text file
     with open(class_txt_file, "w") as f_class:
-        for label in tqdm(folder_numbers, desc="Writing classes", unit="class"):
+        logger.info("[data] Writing %s class names", len(folder_numbers))
+        for label in folder_numbers:
             f_class.write(str(label) + "\n")
 
 
 def write_text_file(file_list, file_path, folder_numbers):
+    logger.info(
+        "[data] Writing %s entries to %s",
+        len(file_list),
+        os.path.basename(file_path),
+    )
     with open(file_path, "w") as f:
-        for file in tqdm(
-            file_list, desc=f"Writing {os.path.basename(file_path)}", unit="file"
-        ):
+        for file in file_list:
             file = file.replace("\\", "/")  # Assuming UNIX-like path separator
             f.write(file + " " + str(folder_numbers[file.split("/")[0]]) +
                     "\n")
@@ -448,96 +452,6 @@ def resize_im(im, height, width):
     return resize_fn(image=im)["image"]
 
 
-def data_generator(
-    inputs,
-    targets,
-    batch_size,
-    mean_RGB,
-    std_RGB,
-    preprocess_mode,
-    aug_params,
-    num_classes,
-    im_size=224,
-    shuffle=True,
-):
-    """
-    Generator to feed Keras fit function
-
-    Parameters
-    ----------
-    inputs : Numpy array, shape (N, H, W, C)
-    targets : Numpy array, shape (N)
-    batch_size : int
-    shuffle : bool
-    aug_params : dict
-    im_size : int
-        Final image size to feed the net's input (eg. 224 for Resnet).
-
-    Returns
-    -------
-    Generator of inputs and labels
-    """
-
-    # Create list of indices
-    idxs = np.arange(len(inputs))
-    if shuffle:
-        np.random.shuffle(idxs)
-
-    for start_idx in range(0, len(inputs) - batch_size + 1, batch_size):
-        excerpt = idxs[start_idx:start_idx + batch_size]
-        batch_X = []
-        for i in excerpt:
-            im = load_image(inputs[i], filemode="local")
-            im = augment(im, params=aug_params)
-            im = resize_im(im, height=im_size, width=im_size)
-            batch_X.append(im)  # shape (N, 224, 224, 3)
-        batch_X = preprocess_batch(
-            batch=batch_X,
-            mean_RGB=mean_RGB,
-            std_RGB=std_RGB,
-            mode=preprocess_mode,
-        )
-        batch_y = to_categorical(targets[excerpt], num_classes=num_classes)
-
-        yield batch_X, batch_y
-
-
-def buffered_generator(source_gen, buffer_size=10):
-    """
-    Generator that runs a slow source generator in a separate thread. Beware of the GIL!
-    Author: Benanne (github-kaggle/benanne/ndsb)
-
-    Parameters
-    ----------
-    source_gen : generator
-    buffer_size: the maximal number of items to pre-generate (length of the buffer)
-
-    Returns
-    -------
-    Buffered generator
-    """
-    if buffer_size < 2:
-        raise RuntimeError("Minimal buffer size is 2!")
-
-    buffer = queue.Queue(maxsize=buffer_size - 1)
-
-    # the effective buffer size is one less, because the generation process
-    # will generate one extra element and block until there is room in the
-    # buffer.
-
-    def _buffered_generation_thread(source_gen, buffer):
-        for data in source_gen:
-            buffer.put(data, block=True)
-        buffer.put(None)  # sentinel: signal the end of the iterator
-
-    thread = threading.Thread(target=_buffered_generation_thread,
-                              args=(source_gen, buffer))
-    thread.daemon = True
-    thread.start()
-
-    for data in iter(buffer.get, None):
-        yield data
-
 
 class data_sequence(Sequence):
     """
@@ -755,22 +669,27 @@ def compute_meanRGB(im_list, verbose=False, workers=4):
     im_list : array of strings
         Array where the first column is image_path (or image_url). Shape (N,).
     verbose : bool
-        Show progress bar
+        Show progress bar.
     workers: int
         Numbers of parallel workers to perform the computation with.
 
-    References
-    ----------
-    https://stackoverflow.com/questions/41920124/multiprocessing-use-tqdm-to-display-a-progress-bar
     """
 
-    with Pool(workers) as p:
-        r = list(
-            tqdm(
-                p.imap(im_stats, im_list),
-                total=len(im_list),
-                disable=verbose,
-            ))
+    total = len(im_list)
+    logger.info("[data] Computing RGB statistics for %s images", total)
+    with utils.prefixed_stdout("planktonclas.data_utils", "[data]"):
+        with Pool(workers) as p:
+            r = list(
+                tqdm(
+                    p.imap(im_stats, im_list),
+                    total=total,
+                    disable=verbose,
+                    file=sys.stdout,
+                    dynamic_ncols=True,
+                    desc="Computing RGB statistics",
+                    unit="img",
+                )
+            )
 
     r = np.asarray(r)
     mean, std = r[:, 0], r[:, 1]
@@ -847,4 +766,3 @@ def json_friendly(d):
                 v = np.array(v).tolist()
         new_d[k] = v
     return new_d
-

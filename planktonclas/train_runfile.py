@@ -24,7 +24,7 @@ import os
 import sys
 import time
 from datetime import datetime
-
+import argparse
 import numpy as np
 
 # Configure warnings before importing TensorFlow/Keras.
@@ -77,6 +77,13 @@ def log_step(message, *args):
     logger.info("[train] " + message, *args)
 
 
+def display_path(path):
+    try:
+        return os.path.relpath(path, os.getcwd()).replace("\\", "/")
+    except ValueError:
+        return path
+
+
 def train_fn(TIMESTAMP, CONF):
 
     paths.timestamp = TIMESTAMP
@@ -86,7 +93,7 @@ def train_fn(TIMESTAMP, CONF):
     run_log_path = os.path.join(paths.get_logs_dir(), "training.log")
     warnings_config.attach_file_handler(run_log_path)
     utils.backup_splits()
-    log_step("Writing run log to: %s", run_log_path)
+    log_step("Writing run log to: %s", display_path(run_log_path))
 
     if "train.txt" not in os.listdir(paths.get_ts_splits_dir()):
         if not CONF["dataset"]["split_ratios"]:
@@ -110,8 +117,8 @@ def train_fn(TIMESTAMP, CONF):
         log_section("Using existing dataset splits")
 
     log_section("Loading training data")
-    log_step("Splits directory: %s", paths.get_ts_splits_dir())
-    log_step("Images directory: %s", paths.get_images_dir())
+    log_step("Splits directory: %s", display_path(paths.get_ts_splits_dir()))
+    log_step("Images directory: %s", display_path(paths.get_images_dir()))
     X_train, y_train = load_data_splits(
         splits_dir=paths.get_ts_splits_dir(),
         im_dir=paths.get_images_dir(),
@@ -150,15 +157,15 @@ def train_fn(TIMESTAMP, CONF):
     if CONF["training"]["use_class_weights"]:
         log_section("Computing class weights")
         class_weights = compute_classweights(
-            y_train, max_dim=CONF["model"]["num_classes"]
-        )
+            y_train, max_dim=CONF["model"]["num_classes"])
     else:
         class_weights = None
 
     if CONF["dataset"]["mean_RGB"] is None:
         log_section("Computing dataset statistics")
         CONF["dataset"]["mean_RGB"], CONF["dataset"]["std_RGB"] = compute_meanRGB(
-            X_train
+            X_train,
+            workers=CONF.get("dataset", {}).get("num_workers", 4)
         )
 
     train_gen = data_sequence(
@@ -223,20 +230,21 @@ def train_fn(TIMESTAMP, CONF):
         len(X_train),
         0 if X_val is None else len(X_val),
     )
-    history = model.fit(
-        x=train_gen,
-        steps_per_epoch=train_steps,
-        epochs=CONF["training"]["epochs"],
-        class_weight=class_weights,
-        validation_data=val_gen,
-        validation_steps=val_steps,
-        callbacks=utils.get_callbacks(CONF),
-        verbose=1,
-        initial_epoch=0,
-    )
+    with utils.prefixed_stdout("planktonclas.train_runfile", "[train]"):
+        history = model.fit(
+            x=train_gen,
+            steps_per_epoch=train_steps,
+            epochs=CONF["training"]["epochs"],
+            class_weight=class_weights,
+            validation_data=val_gen,
+            validation_steps=val_steps,
+            callbacks=utils.get_callbacks(CONF),
+            verbose=1,
+            initial_epoch=0,
+        )
 
     log_section("Training complete")
-    log_step("Saving to: %s", paths.get_timestamped_dir())
+    log_step("Saving to: %s", display_path(paths.get_timestamped_dir()))
     log_step("Saving training statistics")
     stats = {
         "epoch": history.epoch,
@@ -286,13 +294,14 @@ def train_fn(TIMESTAMP, CONF):
         )
         top_K = 5
 
-        output = model.predict(
-            test_gen,
-            verbose=1,
-            # max_queue_size=10,
-            # workers=16,
-            # use_multiprocessing=CONF["training"]["use_multiprocessing"],
-        )
+        with utils.prefixed_stdout("planktonclas.train_runfile", "[train]"):
+            output = model.predict(
+                test_gen,
+                verbose=1,
+                # max_queue_size=10,
+                # workers=16,
+                # use_multiprocessing=CONF["training"]["use_multiprocessing"],
+            )
 
         output = output.reshape(len(X_test), -1, output.shape[-1])
         output = np.mean(output, axis=1)
@@ -338,13 +347,21 @@ def train_fn(TIMESTAMP, CONF):
         )
         with open(pred_path, "w") as outfile:
             json.dump(pred_dict, outfile, sort_keys=True)
-        logger.info("[train] Predictions saved to: %s", pred_path)
+        logger.info("[train] Predictions saved to: %s", display_path(pred_path))
         logger.info("[train] Test set evaluation completed.")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train Phytoplankton CNN")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of multiprocessing workers (use 1 for Jupyter)"
+    )
+    args = parser.parse_args()
 
     CONF = config.get_conf_dict()
+    CONF["dataset"]["num_workers"] = args.workers  # store in CONF
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-
     train_fn(TIMESTAMP=timestamp, CONF=CONF)

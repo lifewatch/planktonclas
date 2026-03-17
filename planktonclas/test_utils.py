@@ -93,12 +93,8 @@ def predict(
     output = output.reshape(len(X), -1, output.shape[-1])
     output = np.mean(output, axis=1)  # take the mean across the crops
     if merge:
-        output = np.mean(
-            output, axis=0
-        )  # take the mean across the images
-        lab = np.argsort(output)[
-            ::-1
-        ]  # sort labels in descending prob
+        output = np.mean(output, axis=0)  # take the mean across the images
+        lab = np.argsort(output)[::-1]  # sort labels in descending prob
         lab = lab[:top_K]  # keep only top_K labels
         # add extra dimension to make to output have a shape (1, top_k)
         lab = np.expand_dims(lab, axis=0)
@@ -110,9 +106,7 @@ def predict(
         prob = output[
             np.repeat(np.arange(len(lab)), lab.shape[1]),
             lab.flatten(),
-        ].reshape(
-            lab.shape
-        )  # retrieve corresponding probabilities
+        ].reshape(lab.shape)  # retrieve corresponding probabilities
     return lab, prob
 
 

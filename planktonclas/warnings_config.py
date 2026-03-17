@@ -103,6 +103,7 @@ def configure_warnings():
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.ERROR)
         # Remove existing handlers and add a null handler
+        logger.handlers = []
         logger.handlers.clear()
         logger.addHandler(logging.NullHandler())
         # Add suppression filter
@@ -110,18 +111,28 @@ def configure_warnings():
         # Prevent propagation to root logger
         logger.propagate = False
     
-    # Keep the root logger quiet, but do not replace handlers here because the
-    # application configures its own loggers explicitly below.
+    # Set root logger to ERROR
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.ERROR)
+    
+    # Remove all existing handlers from root logger
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Add a null handler to root logger
+    root_logger.addHandler(logging.NullHandler())
+    
+    # Add suppression filter to root logger
+    root_logger.addFilter(SuppressFilter())
+    
     
     # Configure TensorFlow logging
     try:
         import tensorflow as tf
         tf.get_logger().setLevel('ERROR')
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.debug("TensorFlow logging configuration skipped: %s", e)
 
 
     
@@ -152,6 +163,13 @@ def _configure_app_logging():
         app_logger.handlers.clear()
         # Add console handler
         app_logger.addHandler(console_handler)
+
+    # Keep epoch metrics out of the console; they are written to file handlers only.
+    epoch_logger = logging.getLogger(EPOCH_LOGGER)
+    epoch_logger.setLevel(logging.DEBUG)
+    epoch_logger.propagate = False
+    epoch_logger.handlers.clear()
+    epoch_logger.addHandler(logging.NullHandler())
 
 
 def attach_file_handler(log_path, logger_names=None):
