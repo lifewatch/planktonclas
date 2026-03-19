@@ -1,8 +1,0 @@
-Actinoptychus/ecotaxa_Actinoptychus_0C415579-5E23-4F81-838D-049F68E34294.jpg 0
-Bacillariophyceae/ecotaxa_Bacillariophyceae_00A38A05-CCDE-4064-95E8-61B523946DB4.jpg 1
-Ciliophora/ecotaxa_Ciliophora_0A735A41-35DC-4ADE-94D3-8B093EA290C6.jpg 2
-Dinoflagellata/ecotaxa_Dinoflagellata_0C95B065-D758-4B94-BB78-DD92B5CDD49C.jpg 3
-Dinoflagellata/ecotaxa_Dinoflagellata_0CCE620C-F12B-4021-9A12-BEBD265C30A0.jpg 3
-Noctilucales/ecotaxa_Noctilucales_0A24AB3E-AEBC-4BCB-B453-FA36A42A2E17.jpg 4
-Noctilucales/ecotaxa_Noctilucales_0A3697D6-6D3F-47D8-98B9-CF1B848DD661.jpg 4
-Tripos/ecotaxa_Tripos_0D10125B-70A0-4C71-80E6-F5958EE91E60.jpg 5

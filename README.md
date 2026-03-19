@@ -1,4 +1,4 @@
-AI4OS/DEEP Open Catalogue: Image classification
+AI4OS/DEEP Open Catalogue: Image classification for flowcytometer
 =========================================
 [![Build Status](https://jenkins.services.ai4os.eu/buildStatus/icon?job=AI4OS-hub/phyto-plankton-classification/main)](https://jenkins.services.ai4os.eu/job/AI4OS-hub/job/phyto-plankton-classification/job/main/)
 
@@ -66,7 +66,7 @@ To start using this framework clone the repo
 
 ```bash
 # First line installs OpenCV requirement
-git clone https://github.com/lifewatch/phyto-plankton-classification
+git clone https://github.com/ai4os-hub/phyto-plankton-classification.git
 cd phyto-plankton-classification
 pip install -e .
 ```
@@ -83,7 +83,7 @@ So open docker, if correct, you should see a small ship (docker desktop) symbol 
 ### 1.3 Clone the directory
 The directory is cloned so that the remote and the local directory are the same. This makes it easier to copy files inside the remote directory
 ```bash
-git clone https://github.com/ai4os-hub/phyto-plankton-classification
+git clone https://github.com/ai4os-hub/phyto-plankton-classification.git
 cd phyto-plankton-classification
 ```
 
@@ -247,26 +247,7 @@ you want and click 'Execute'. You can **either** supply a:
 * a `zip` argument with an URL pointing to zipped folder with images.
 
 
-## Extra information
-### Predict through OSCAR:
-You can follow the [Oscar Tutorial](https://docs.ai4eosc.eu/en/latest/howtos/deploy/oscar-manual.html). 
-But basically go to: https://inference.cloud.ai4eosc.eu/ui/#/login or https://inference-walton.cloud.imagine-ai.eu/ui/#/login and sign in and look for the 'phyto-plankton-classifier'. You can put upload images in the phytoplankton-classifier bucket under "input" and found the results under "output".
 
-If  you don't have an account yet then:
-
-1) go to https://aai.egi.eu/ and login via the account you used for the
-platform (usually your institute)
-
-2) go to top-right corner, you should see your name. Click on it and
-select "My EGI User Community Identity"
-
-3) on the opened page, scroll down to "Role Attributes" and check if
-you find in the table a row with "vo.imagine-ai.eu". The "Status" must
-be "Active", also "Valid Through" should be in future.
-
-4) IF you DON'T see "vo.imagine-ai.eu" listed, please, apply for the
-membership by clicking:
-https://aai.egi.eu/registry/co_petitions/start/coef:546
 
 ### Activation of jupyter notebook
 You can also activate the jupyter notebooks inside the docker container and work from there. 
