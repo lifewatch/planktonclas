@@ -25,7 +25,7 @@ general:
           If path is relative it will be appended to the package path.
 
   images_directory:
-    value: "C://Users//wout.decrop//Documents//environments//flowcyto_ecotaxa//OBSEA//sorted_images"
+    value: "../../../flowcyto_ecotaxa//OBSEA//sorted_images"
     #"/storage/Imagine_UC5/data/images_mini_version"
     type: "str"
     help: >
