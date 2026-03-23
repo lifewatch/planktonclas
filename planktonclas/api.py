@@ -122,6 +122,39 @@ allowed_extensions = set(
 top_K = 5  # number of top classes predictions to return
 
 
+def _list_inference_checkpoints(ckpt_dir):
+    """Return inference checkpoints supported by the API."""
+    supported_exts = (".keras", ".h5")
+    return sorted(
+        [name for name in os.listdir(ckpt_dir) if name.endswith(supported_exts)]
+    )
+
+
+def _get_default_checkpoint_name(ckpt_list):
+    """Prefer .keras checkpoints when multiple formats are available."""
+    keras_ckpts = [name for name in ckpt_list if name.endswith(".keras")]
+    if keras_ckpts:
+        return keras_ckpts[-1]
+    return ckpt_list[-1]
+
+
+def _list_all_inference_checkpoints(models_dir):
+    """Return the unique set of supported checkpoint names across all timestamps."""
+    ckpt_names = set()
+    timestamp_list = next(os.walk(models_dir))[1]
+    current_timestamp = paths.timestamp
+    try:
+        for timestamp in sorted(timestamp_list):
+            paths.timestamp = timestamp
+            ckpt_dir = paths.get_checkpoints_dir()
+            if not os.path.isdir(ckpt_dir):
+                continue
+            ckpt_names.update(_list_inference_checkpoints(ckpt_dir))
+    finally:
+        paths.timestamp = current_timestamp
+    return sorted(ckpt_names)
+
+
 def display_banner():
     """Display ASCII art banner when model is ready."""
     banner = r"""                                                                                                                              
@@ -194,10 +227,7 @@ def load_inference_model(timestamp=None, ckpt_name=None):
     logger.info("✓ Loaded model timestamp: %s", timestamp)
 
     # Set the checkpoint model to use to make the prediction
-    ckpt_list = os.listdir(paths.get_checkpoints_dir())
-    ckpt_list = sorted(
-        [name for name in ckpt_list if name.endswith(".h5")]
-    )
+    ckpt_list = _list_inference_checkpoints(paths.get_checkpoints_dir())
     if not ckpt_list:
         raise Exception(
             "You have no checkpoints in your `./models/{}/ckpts` folder to be used for inference. ".format(
@@ -206,7 +236,7 @@ def load_inference_model(timestamp=None, ckpt_name=None):
             + "Therefore the API can only be used for training."
         )
     elif ckpt_name is None:
-        ckpt_name = ckpt_list[-1]
+        ckpt_name = _get_default_checkpoint_name(ckpt_list)
     elif ckpt_name not in ckpt_list:
         raise ValueError(
             "Invalid checkpoint name: {}. Available checkpoint names are: {}".format(
@@ -239,6 +269,19 @@ def load_inference_model(timestamp=None, ckpt_name=None):
     with open(conf_path) as f:
         conf = json.load(f)
         update_with_saved_conf(conf)
+
+    best_model_name = "best_model.keras"
+    best_model_path = os.path.join(paths.get_checkpoints_dir(), best_model_name)
+    if (
+        conf.get("training", {}).get("use_best_model", False)
+        and ckpt_name == "final_model.h5"
+        and os.path.exists(best_model_path)
+    ):
+        logger.info(
+            "Switching inference checkpoint from final_model.h5 to %s because training.use_best_model=true.",
+            best_model_name,
+        )
+        ckpt_name = best_model_name
 
     logger.info("Loading model weights...")
     loader = LoadingBar("✓ Loading model weights...")
@@ -727,6 +770,29 @@ def get_predict_args():
     else:
         timestamp["value"] = timestamp_list[-1]
         timestamp["choices"] = timestamp_list
+
+    # Add options for checkpoint names across all available timestamps.
+    # The selected timestamp still determines whether a given checkpoint is valid at runtime.
+    ckpt_name = default_conf["testing"]["ckpt_name"]
+    ckpt_choices = _list_all_inference_checkpoints(paths.get_models_dir())
+    if ckpt_choices:
+        if timestamp["value"]:
+            current_timestamp = paths.timestamp
+            try:
+                paths.timestamp = timestamp["value"]
+                current_ckpts = _list_inference_checkpoints(paths.get_checkpoints_dir())
+            finally:
+                paths.timestamp = current_timestamp
+        else:
+            current_ckpts = []
+
+        if current_ckpts:
+            ckpt_name["value"] = _get_default_checkpoint_name(current_ckpts)
+        else:
+            ckpt_name["value"] = ckpt_choices[0]
+        ckpt_name["choices"] = ckpt_choices
+    else:
+        ckpt_name["value"] = ""
 
     parser["image"] = fields.Field(
         required=False,
