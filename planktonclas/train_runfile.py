@@ -84,6 +84,18 @@ def display_path(path):
         return path
 
 
+def get_preferred_testing_checkpoint(conf):
+    """Return the checkpoint that should be used for testing/inference outputs."""
+    use_best_model = conf["training"].get("use_best_model", True)
+    use_validation = conf["training"]["use_validation"]
+    best_model_name = "best_model.keras"
+    best_model_path = os.path.join(paths.get_checkpoints_dir(), best_model_name)
+
+    if use_best_model and use_validation and os.path.exists(best_model_path):
+        return best_model_name
+    return "final_model.keras"
+
+
 def train_fn(TIMESTAMP, CONF):
 
     paths.timestamp = TIMESTAMP
@@ -257,9 +269,6 @@ def train_fn(TIMESTAMP, CONF):
     with open(os.path.join(stats_dir, "stats.json"), "w") as outfile:
         json.dump(stats, outfile, sort_keys=True, indent=4)
 
-    log_step("Saving configuration")
-    model_utils.save_conf(CONF)
-
     log_step("Saving model in HDF5 format")
     fpath = os.path.join(paths.get_checkpoints_dir(), "final_model.h5")
 
@@ -270,10 +279,32 @@ def train_fn(TIMESTAMP, CONF):
     finally:
         sys.stderr = stderr_backup
 
+    preferred_ckpt_name = get_preferred_testing_checkpoint(CONF)
+    CONF["testing"]["timestamp"] = TIMESTAMP
+    CONF["testing"]["ckpt_name"] = preferred_ckpt_name
+
+    log_step("Saving configuration")
+    model_utils.save_conf(CONF)
+    log_step("Default testing checkpoint: %s", preferred_ckpt_name)
+
     logger.info("[train] Training finished successfully.")
 
     if CONF["training"]["use_test"]:
         log_section("Evaluating test split")
+        if preferred_ckpt_name != "final_model.h5":
+            preferred_ckpt_path = os.path.join(
+                paths.get_checkpoints_dir(), preferred_ckpt_name
+            )
+            log_step(
+                "Reloading preferred checkpoint for test evaluation: %s",
+                display_path(preferred_ckpt_path),
+            )
+            model = tf.keras.models.load_model(
+                preferred_ckpt_path,
+                custom_objects=utils.get_custom_objects(),
+                compile=False,
+            )
+
         X_test, y_test = load_data_splits(
             splits_dir=paths.get_ts_splits_dir(),
             im_dir=paths.get_images_dir(),
@@ -343,7 +374,7 @@ def train_fn(TIMESTAMP, CONF):
 
         pred_path = os.path.join(
             paths.get_predictions_dir(),
-            "{}+{}+top{}.json".format("final_model.h5", "DS_split", top_K),
+            "{}+{}+top{}.json".format(preferred_ckpt_name, "DS_split", top_K),
         )
         with open(pred_path, "w") as outfile:
             json.dump(pred_dict, outfile, sort_keys=True)

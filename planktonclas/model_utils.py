@@ -68,18 +68,22 @@ def create_model(CONF):
     # Try to load from local directory first
     if os.path.isdir(local_model_path):
         logger.info("✓ Found locally trained model: %s", modelname)
-        # Look for .h5 file in the model directory
+        # Look for inference checkpoint in the model directory
         ckpt_dir = os.path.join(local_model_path, "ckpts")
 
-        # Find all .h5 files in the directory
-        h5_files = [f for f in os.listdir(ckpt_dir) if f.endswith(".h5")]
+        ckpt_files = sorted(
+            [
+                f for f in os.listdir(ckpt_dir)
+                if f.endswith((".keras", ".h5"))
+            ]
+        )
 
-        if not h5_files:
-            raise FileNotFoundError(f"No .h5 model found in {ckpt_dir}")
+        if not ckpt_files:
+            raise FileNotFoundError(f"No .keras or .h5 model found in {ckpt_dir}")
 
-        # If there is more than one, pick the first (or sort if you want determinism)
-        h5_files.sort()
-        model_file = os.path.join(ckpt_dir, h5_files[0])
+        keras_files = [f for f in ckpt_files if f.endswith(".keras")]
+        selected_file = keras_files[-1] if keras_files else ckpt_files[-1]
+        model_file = os.path.join(ckpt_dir, selected_file)
         logger.info("▌ Loading model checkpoint: %s", os.path.basename(model_file))
         base_model = load_model(model_file, custom_objects=utils.get_custom_objects())
         logger.debug("✓ Model output shape: %s", base_model.output_shape)

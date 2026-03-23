@@ -23,6 +23,7 @@ from multiprocessing import Process
 import numpy as np
 from tensorflow.keras import backend as K
 from tensorflow.keras import callbacks
+from tensorflow.keras.layers import Dense
 
 from planktonclas import paths
 from planktonclas.optimizers import customAdam, customAdamW, customSGD
@@ -30,6 +31,16 @@ from planktonclas.optimizers import customAdam, customAdamW, customSGD
 # Configure logger
 logger = logging.getLogger(__name__)
 epoch_logger = logging.getLogger("planktonclas.epoch_metrics")
+
+
+class CompatDense(Dense):
+    """Dense layer compatibility shim for models saved with newer Keras configs."""
+
+    @classmethod
+    def from_config(cls, config):
+        config = dict(config)
+        config.pop("quantization_config", None)
+        return super().from_config(config)
 
 
 def create_dir_tree():
@@ -120,6 +131,7 @@ def get_custom_objects():
         "customSGD": customSGD,
         "customAdam": customAdam,
         "customAdamW": customAdamW,
+        "Dense": CompatDense,
     }
 
 
@@ -339,6 +351,22 @@ def get_callbacks(CONF, use_lr_decay=True):
                         CONF["training"]["epochs"]),
                 ),
             ))
+
+    if CONF["training"].get("use_best_model", True) and CONF["training"]["use_validation"]:
+        best_model_path = os.path.join(paths.get_checkpoints_dir(), "best_model.keras")
+
+        calls.append(
+            callbacks.ModelCheckpoint(
+                filepath=best_model_path,
+                monitor="val_accuracy",
+                save_best_only=True,
+                save_weights_only=False,
+                mode="max",
+                verbose=1,
+            )
+        )
+
+        print("Best model will be saved to:", best_model_path)
 
     if not calls:
         calls = None
