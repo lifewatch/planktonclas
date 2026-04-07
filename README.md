@@ -47,7 +47,16 @@ After installation, the main PI10 processing script can be started with:
 python PI10/VLIZ-Pi-10_processing.py
 ```
 
-If you also want to use `PI10/explore_metrics.py`, you may need additional visualization dependencies depending on your local setup.
+If you also want to use `PI10/explore_metrics.py`, install the Spotlight viewer dependency too:
+
+```bash
+pip install renumics-spotlight
+```
+
+That package is only needed for:
+
+- `from renumics import spotlight`
+- `PI10/explore_metrics.py`
 
 ## Scope Of This Branch
 
