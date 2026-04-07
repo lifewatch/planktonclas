@@ -154,11 +154,16 @@ planktonclas/run_file.ipynb
 .Trash-0
 
 models/*
+models/*
+!models/2025-10-09_140052-anasimyia/
+!models/2025-10-09_140052-anasimyia/**
+
+
 data/*
 data/images/*
 !data/dataset_files
 !models/.gitkeep
-!models/phytoplankton_vliz/*
+# !models/phytoplankton_vliz/*
 
 notebooks\3.2-Saliency_maps.ipynb
 flowcam_2021_TEMP.csv
