@@ -1,0 +1,3 @@
+https://test-files.pythonhosted.org/packages/63/0a/528167253e94a4a657bbf5440f906bb33352df2aa90d00011ca506407752/planktonclas-0.2.0-py3-none-any.whl
+scikit-image
+python-dotenv

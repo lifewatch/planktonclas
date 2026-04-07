@@ -15,15 +15,19 @@ Metadata
 
 # === LIBRARIES ===
 import os
+from pathlib import Path
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['NO_ALBUMENTATIONS_UPDATE'] = '1'
+
+# Point the installed package to this repo's local config before importing planktonclas.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+os.environ["PLANKTONCLAS_CONFIG"] = str(REPO_ROOT / "config.yaml")
 
 import smtplib
 from email.mime.text import MIMEText
 import absl.logging
 absl.logging.set_verbosity(absl.logging.ERROR)
 import shutil
-from pathlib import Path
 import tarfile
 import pandas as pd
 import subprocess
