@@ -71,12 +71,10 @@ The broader `planktonclas` package documentation, including installation options
 
 ## Acknowledgements
 
-If you use this project, please consider citing:
+If you use this project, please consider citing the original paper for the package:
 
 > Decrop, W., Lagaisse, R., Mortelmans, J., Muñiz, C., Heredia, I., Calatrava, A., & Deneudt, K. (2025). *Automated image classification workflow for phytoplankton monitoring*. **Frontiers in Marine Science, 12**. https://doi.org/10.3389/fmars.2025.1699781
+
+and the model weights:
+
 > Decrop, W., & Mortelmans, J. (2026). *phyto-plankton-classification (v1.0-PI10)*. Zenodo. https://doi.org/10.5281/zenodo.19609980
-
-
-and:
-
-> García, Álvaro López, et al. [A Cloud-Based Framework for Machine Learning Workloads and Applications.](https://ieeexplore.ieee.org/abstract/document/8950411/authors) IEEE Access 8 (2020): 18681-18692.
