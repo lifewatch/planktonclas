@@ -15,7 +15,7 @@ ARG tag=2.19.0-gpu
 # Base image, e.g. tensorflow/tensorflow:2.9.1
 FROM tensorflow/tensorflow:${tag}
 
-LABEL maintainer='Ignacio Heredia (CSIC), Wout Decrop (VLIZ)'
+LABEL maintainer='Wout Decrop (VLIZ)'
 LABEL version='0.1.0'
 # Add container's metadata to appear along the models metadata
 ENV CONTAINER_MAINTAINER "Wout Decrop <wout.decrop@vliz.be>"
@@ -53,17 +53,6 @@ ENV LANG C.UTF-8
 # Set the working directory
 WORKDIR /srv
 
-# Install rclone (needed if syncing with NextCloud for training; otherwise remove)
-RUN curl -O https://downloads.rclone.org/rclone-current-linux-amd64.deb && \
-    dpkg -i rclone-current-linux-amd64.deb && \
-    apt install -f && \
-    mkdir /srv/.rclone/ && \
-    touch /srv/.rclone/rclone.conf && \
-    rm rclone-current-linux-amd64.deb && \
-    rm -rf /var/lib/apt/lists/*
-
-ENV RCLONE_CONFIG=/srv/.rclone/rclone.conf
-
 # Disable FLAAT authentication by default
 ENV DISABLE_AUTHENTICATION_AND_ASSUME_AUTHENTICATED_USER yes
 
@@ -82,8 +71,8 @@ RUN git clone -b $branch --depth 1 https://github.com/ai4os-hub/phyto-plankton-c
     cd ..
    # pip uninstall -y numpy && \
   # pip install numpy~=1.24
-RUN pip install --no-cache-dir \
-    keras==3.13.0 
+# RUN pip install --no-cache-dir \
+#     keras==3.13.0 
 
 # Open ports: DEEPaaS (5000), Monitoring (6006), Jupyter (8888)!
 EXPOSE 5000 6006 8888
