@@ -1,9 +1,11 @@
 # Configuration file for the image classification application
 #
 # Date: September 2018
-# Author: Ignacio Heredia
-# Email: iheredia@ifca.unican.es
-# Github: ignacioheredia
+# Last updated: March 2026
+# Original Author: Ignacio Heredia (CSIC)
+# Updated and maintained by: Wout Decrop (VLIZ)
+# Contact: wout.decrop@vliz.be
+# Github: ai4os-hub / phyto-plankton-classification
 #
 # References
 # ----------
@@ -26,7 +28,6 @@ general:
 
   images_directory:
     value: "../../flowcyto_ecotaxa//OBSEA//sorted_images"
-    #"/storage/Imagine_UC5/data/images_mini_version"
     type: "str"
     help: >
           Base directory for images. If the path is relative, it will be appended to the package path.
@@ -55,20 +56,6 @@ model:
     help: >
           Image size to feed the model. If not provided, we will use the default image size of each model.
 
-  num_classes:
-    value:
-    type: "int"
-    range: [1, None]
-    help: >
-          Total number of possible output classes. If not provided, we will use the max label number from y_train.
-
-  preprocess_mode:
-    value:
-    type: "str"
-    help: >
-          Mode of image preprocessing. It's value will depend on the model you select, therefore you don't need to set
-          it.
-
 
 #####################################################
 #  Options about your dataset
@@ -76,7 +63,7 @@ model:
 
 dataset:
   mean_RGB:
-    value: 
+    value:
     type: "list"
     help: >
           Mean RGB value of the image dataset. If not provided it will be automatically computed before the training
@@ -84,14 +71,14 @@ dataset:
           different training configurations with the same dataset.
           Example: [158.33844060679408, 158.33844060679408, 158.33844060679408]
 
-  std_RGB: 
-    value: 
+  std_RGB:
+    value:
     type: "list"
     help: >
           Standard deviation of the RGB value of the image dataset. It is actually not needed for training.
           Example: [48.89589490647217, 48.89589490647217, 48.89589490647217]
 
-  split_ratios: 
+  split_ratios:
     value: [0.8, 0.1, 0.1]
     type: "list"
     item_type: float
@@ -143,19 +130,12 @@ training:
           Frequency of the checkpoints (Float between 0 and 1). If None there will be no checkpoints saved. If 0.0 there
           will be 1 checkpoint per epoch. For example 0.1 means there will be 10 ckpts during the training.
 
-  lr_schedule_mode:
-    value: "step"
-    type: "str"
-    choices: ['step']
-    help: >
-          Mode for the learning rate schedule computation.
-
   lr_step_decay:
     value: 0.1
     type: "float"
     range: [0, 1]
     help: >
-          Amount to decay the lr. Only relevant if lr_schedule_mode is set to 'step'
+          Amount to decay the learning rate.
 
   lr_step_schedule:
     value: [0.7, 0.9]
@@ -192,7 +172,16 @@ training:
     choices: [true, false]
     help: >
           Whether to use or not test. If True you have to provide a `test.txt` file in the `splits` directory.
-          
+
+
+  use_best_model:
+    value: True
+    type: "bool"
+    choices: [true, false]
+    help: >
+          Whether to save or not the best model during training. If True, the model with the best validation accuracy will be
+          saved in a `best_model.h5/keras` file in the timestamp folder.
+
   use_early_stopping:
     value: False
     type: "bool"
@@ -234,12 +223,12 @@ monitor:
 #  Options about your dataset image augmentation
 #####################################################
 
-
 augmentation:
 
-  use_augmentation: 
+  use_augmentation:
     value: True
     type: "bool"
+    choices: [true, false]
     help: >
           Use image augmentation during the training process.
 
@@ -257,7 +246,28 @@ augmentation:
       pixel_sat: 0.3
       cutout: 0.5
     help: >
-      Augmentation parameters to use during training.
+          Augmentation parameters to use during the training phase. The meaning of the parameters is the following:
+            - h_flip ([0,1] float): probability of performing an horizontal left-right mirroring.
+            - v_flip ([0,1] float): probability of performing an vertical up-down mirroring.
+            - rot ([0,1] float):  probability of performing a rotation to the image.
+            - rot_lim (int):  max degrees of rotation.
+            - stretch ([0,1] float):  probability of randomly stretching an image. It is set to zero by default because
+              on some datasets it can lead to nonsensical images.
+            - crop ([0,1] float): randomly take an image crop.
+            - zoom ([0,1] float): random zoom applied to crop_size.
+                --> Therefore the effective crop size at each iteration will be a
+                    random number between 1 and crop*(1-zoom). For example:
+                      * crop=1, zoom=0: no crop of the image
+                      * crop=1, zoom=0.1: random crop of random size between 100% image and 90% of the image
+                      * crop=0.9, zoom=0.1: random crop of random size between 90% image and 80% of the image
+                      * crop=0.9, zoom=0: random crop of always 90% of the image
+                      Image size refers to the size of the shortest side.
+            - blur ([0,1] float):  probability of randomly blurring an image.
+            - pixel_noise ([0,1] float):  probability of randomly adding pixel noise to an image.
+            - pixel_sat ([0,1] float):  probability of randomly using HueSaturationValue in the image.
+            - cutout ([0,1] float):  probability of using cutout in the image.
+
+          Use an empty dict {} in case you want to disable data augmentation.
 
   val_mode:
     value:
@@ -273,9 +283,10 @@ augmentation:
       pixel_sat: 0.0
       cutout: 0.0
     help: >
-      Minimal augmentation for validation/testing. The goal is to assess model performance
-      on clean, unaltered data. Only basic preprocessing (like normalization or resizing)
-      should be applied.
+          Augmentation parameters to use during the validation/testing phase. The augmentation is smaller than in the
+          case of training parameters. The meaning of the parameters is the same as in the train_mode option.
+
+          Use an empty dict {} in case you want to disable data augmentation.
 
 
 #####################################################
@@ -285,20 +296,22 @@ augmentation:
 
 testing:
   timestamp:
-    value: 
+    value:
     type: "str"
     help: >
       Model timestamp to use for prediction.
-      
+
   ckpt_name:
-    value: "final_model.h5"
+    value: ""
     type: "str"
     help: >
-      Checkpoint inside the timestamp to use for prediction.
+      Checkpoint inside the timestamp to use for prediction. If empty, the API prefers `best_model.keras` when available,
+      otherwise it falls back to the latest supported checkpoint such as `final_model.keras`.
+      For legacy pretrained models such as `Phytoplankton_EfficientNetV2B0`, use `final_model.h5`.
 
   output_directory:
     value: null
     type: "str"
     help: >
-      Location where to save the predictions. If empty, will save in mother folder of file_location folder.
-      
+      Location where to save the predictions. If empty, will save in mother folder of
+
