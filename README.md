@@ -1,6 +1,5 @@
-AI4OS/DEEP Open Catalogue: Phytoplankton Classification
+Planktonclas: FlowCam
 =======================================================
-[![Build Status](https://jenkins.services.ai4os.eu/buildStatus/icon?job=AI4OS-hub/phyto-plankton-classification/main)](https://jenkins.services.ai4os.eu/job/AI4OS-hub/job/phyto-plankton-classification/job/main/)
 
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers.
 
@@ -11,7 +10,7 @@ It supports:
 - containerized execution with Docker
 - hosted deployment through AI4OS and OSCAR
 
-**Authors:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) & [Ignacio Heredia](https://github.com/IgnacioHeredia)
+**Authors:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
 
 **Projects:**
 - [iMagine](https://www.imagine-ai.eu/)
