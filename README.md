@@ -25,10 +25,10 @@ This branch is intended to **install `planktonclas` as a package** rather than i
 Create and activate a fresh virtual environment:
 
 ```bash
-cd C:\
+mkdir PI10-processing
+cd PI10-processing
 python -m venv vpi10
 .\vpi10\Scripts\Activate.ps1
-cd C:\Users\wout.decrop\Documents\environments\phytoplankton_classifier\phyto-plankton-classification
 python -m pip install --upgrade pip setuptools wheel
 ```
 
