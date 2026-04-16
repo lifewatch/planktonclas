@@ -10,7 +10,7 @@ It supports:
 - containerized execution with Docker
 - hosted deployment through AI4OS and OSCAR
 
-**Authors:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
+**Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
 
 **Projects:**
 - [iMagine](https://www.imagine-ai.eu/)
