@@ -74,6 +74,8 @@ The broader `planktonclas` package documentation, including installation options
 If you use this project, please consider citing:
 
 > Decrop, W., Lagaisse, R., Mortelmans, J., Muñiz, C., Heredia, I., Calatrava, A., & Deneudt, K. (2025). *Automated image classification workflow for phytoplankton monitoring*. **Frontiers in Marine Science, 12**. https://doi.org/10.3389/fmars.2025.1699781
+> Decrop, W., & Mortelmans, J. (2026). *phyto-plankton-classification (v1.0-PI10)*. Zenodo. https://doi.org/10.5281/zenodo.19609980
+
 
 and:
 
