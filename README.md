@@ -4,7 +4,7 @@
 
 **Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and Jonas Mortelmans *(VLIZ)*
 
-This branch is focused on the **PI10 processing workflow** at VLIZ.
+This branch is focused on the **PI10 processing workflow** at VLIZ!
 It uses the published `planktonclas` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
 
 For general package usage, training workflows, CLI commands, API usage, notebooks, and full documentation, see:
