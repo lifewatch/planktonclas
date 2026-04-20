@@ -1,100 +1,49 @@
-Phytoplankon classifier: ZooScan
-=========================================
-
-**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)*, Jonas Mortelmans *(VLIZ)*, and [Ignacio Heredia](https://github.com/IgnacioHeredia)  
-*(CSIC)*
-
-**Project:** This branch is based on the main github which is part of the [iMagine](https://www.imagine-ai.eu/) project, funded by the European Union’s Horizon 2020 research and innovation programme under grant agreement No. 101058625.
-
----
-## Table of Contents
-
-1. [Installing this module](#installing-this-module)  
-   1. [Local installation (not recommended)](#local-installation-not-recommended)  
-2. [Prepare for training](#1-prepare-for-training)  
-   1. [Data preprocessing](#1-data-preprocessing)  
-      1. [Prepare the images](#11-prepare-the-images)  
-      2. [Prepare the data splits (optional)](#12-prepare-the-data-splits-optional)  
-   2. [Train the network](#2-train-the-network)  
-      1. [Adapting the YAML file](#21-adapting-the-yaml-file)  
-      2. [Running the training](#22-running-the-training)  
-3. [Predict an image classifier](#2-predict-pi10)  
-   1. [Predicting methods](#predicting-methods)  
-      1. [Predict with Jupyter Notebooks (Recommended)](#predict-with-jupyter-notebooks-recommended)  
-      2. [Predict with Deepaas](#predict-with-deepaas)  
-4. [Acknowledgements](#acknowledgements)
-
-# Installing this module
-
-## Local installation (not recommended)
-Although a local installation is possible, we recommend an installation through docker. This is less likely to breake support and has been tested with latest updates. We are working with python 3.6.9 which can be difficult to install. 
-> **Requirements**
-```bash
-git clone https://github.com/lifewatch/phyto-plankton-classification
-cd phyto-plankton-classification
-pip install -e .
-```
-
-# 1. Prepare for training
-
-You can train your own audio classifier with your custom dataset. For that you have to:
-
-## 1. Data preprocessing
-
-The first step to train you image classifier if to have the data correctly set up. 
-
-### 1.1 Prepare the images
-
-The model needs to be able to access the images. So you have to place your images in the [./data/images](/data/images) folder. If you have your data somewhere else you can use that location by setting the `image_dir` parameter in the training args. 
-Please use a standard image format (like `.png` or `.tif`). 
-
-You can copy the images to [phyto-plankton-classification/data/images](/data/images) folder on your pc. 
-If the images are on nextcloud, you can one of the next steps depending if you have rclone or not. 
+Planktonclas: ZooScan
+=======================================================
 
 
-### 1.2 Prepare the data splits (optional)
+**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* 
 
-Next, you need add to the [./data/dataset_files](/data/dataset_files) directory the following files:
+This branch is focused on the **Cytosense processing workflow** at VLIZ.
+It uses the published `planktonclas` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
 
-| *Mandatory files* | *Optional files*  | 
-|:-----------------------:|:---------------------:|
-|  `classes.txt`, `train.txt` |  `val.txt`, `test.txt`, `info.txt`,`aphia_ids.txt`|
+For general package usage, training workflows, CLI commands, API usage, notebooks, and full documentation, see:
 
-The `train.txt`, `val.txt` and `test.txt` files associate an image name (or relative path) to a label number (that has
-to *start at zero*).
-The `classes.txt` file translates those label numbers to label names.
-The `aphia_ids.txt` file translates those the classes to their corresponding aphia_ids.
-Finally the `info.txt` allows you to provide information (like number of images in the database) about each class. 
-
-You can find examples of these files at [./data/demo-dataset_files](/data/demo-dataset_files).
-
-If you don't want to create your own datasplit, this will be done automatically for you with a 80% train, 10% validation, and 10% test split.
+- https://phyto-plankton-classification.readthedocs.io/en/latest/
 
 
-## 2. Train the network
-Although you can train within docker too, this branch is specifically explained for training locally.
+## PI10 Setup
 
-### 2.1: Adapting the yaml file
-Clarify the location of the images inside the [yaml file](/etc/config.yaml) file. If not, [./data/images](/data/images) will be taken. 
-Any additional parameter can also be changed here such as the type of split for training/validation/testing, batch size, etc
+This branch is intended to **install `planktonclas` as a package** rather than install the package source from this branch.
 
-You can change the config file directly as shown below, or you can change it when running the api.
+Create and activate a fresh virtual environment:
 
 ```bash
-  images_directory:
-    value: "/srv/phyto-plankton-classification/data/images"
-    type: "str"
-    help: >
-          Base directory for images. If the path is relative, it will be appended to the package path.
+mkdir zooscan_processing
+cd zooscan_processing
+python -m venv cyto
+.\vpi10\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
 ```
-### 2.2: Running the training
-After this, you can go to `/srv/phyto-plankton-classification/planktonclas#` and run `train_runfile.py`.
+
+Install the package and the extra dependencies needed for the PI10 scripts:
 
 ```bash
-cd /srv/phyto-plankton-classification/planktonclas` 
-python train_runfile.py
+pip install planktonclas
 ```
-The new model will be saved under [phyto-plankton-classification/models](/models)
 
 
-#
+
+## Scope Of This Branch
+
+This README only documents the PI10-specific setup and entry points.
+The broader `planktonclas` package documentation, including installation options, training, prediction workflows, notebooks, and deployment guidance, is maintained in the main documentation site:
+
+- https://plantonclas.readthedocs.io/en/latest/
+
+
+## Acknowledgements
+
+If you use this project, please consider citing the original paper for the package:
+
+> Decrop, W., Lagaisse, R., Mortelmans, J., Muñiz, C., Heredia, I., Calatrava, A., & Deneudt, K. (2025). *Automated image classification workflow for phytoplankton monitoring*. **Frontiers in Marine Science, 12**. https://doi.org/10.3389/fmars.2025.1699781
