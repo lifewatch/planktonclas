@@ -75,9 +75,16 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
-# exclude data from source control by default
-# /data/*
-/models/*
+# Repo metadata and local tooling
+.git/
+.github/
+
+# Local project content not needed for serving builds
+README.md
+VERSION
+data/
+models/
+notebooks/
 
 # Mac OS-specific storage files
 .DS_Store
