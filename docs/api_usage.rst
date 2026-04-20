@@ -4,6 +4,58 @@
 Overview
 --------
 
+This page shows the API-based workflow as a sequence of practical steps.
+
+Use this path when you want to work through the DEEPaaS browser UI or call the API endpoints directly.
+
+API workflow
+------------
+
+The common order is:
+
+1. install the package
+2. create a project
+3. validate the config
+4. optionally download the pretrained model
+5. start the API
+6. use the training endpoint or prediction endpoint
+7. inspect the outputs written by the package
+
+Step 1: Install the package
+---------------------------
+
+.. code-block:: bash
+
+   pip install planktonclas
+
+Step 2: Create a project
+------------------------
+
+.. code-block:: bash
+
+   planktonclas init my_project
+
+This creates a local ``config.yaml`` and the standard project folders.
+
+Step 3: Validate the config
+---------------------------
+
+.. code-block:: bash
+
+   planktonclas validate-config --config ./my_project/config.yaml
+
+Step 4: Optional pretrained model
+---------------------------------
+
+If you want to start from the published pretrained model:
+
+.. code-block:: bash
+
+   planktonclas pretrained my_project
+
+Step 5: Start the API
+---------------------
+
 The DEEPaaS entry point is defined in ``pyproject.toml``:
 
 .. code-block:: text
@@ -24,9 +76,6 @@ Then open:
 
 Use ``127.0.0.1`` in the browser. ``0.0.0.0`` is only the bind address.
 
-Direct DEEPaaS startup
-----------------------
-
 After a repository install, you can also start the API directly:
 
 .. code-block:: powershell
@@ -35,19 +84,8 @@ After a repository install, you can also start the API directly:
    $env:DEEPAAS_V2_MODEL = "planktonclas"
    deepaas-run --listen-ip 0.0.0.0
 
-Main API functions
-------------------
-
-The main public API functions are:
-
-* ``get_metadata()``
-* ``get_train_args()``
-* ``train(**args)``
-* ``get_predict_args()``
-* ``predict(**args)``
-
-Training through the API
-------------------------
+Step 6: Train through the API
+-----------------------------
 
 Typical browser flow:
 
@@ -74,8 +112,8 @@ Important limitation:
 * the API cannot open a server-side folder chooser through Swagger UI
 * for local use, it is usually better to set the path in ``config.yaml`` before starting the API
 
-Prediction through the API
---------------------------
+Step 7: Run prediction through the API
+--------------------------------------
 
 The prediction endpoint accepts:
 
@@ -100,6 +138,17 @@ The response contains:
 * ``pred_lab``
 * ``pred_prob``
 * ``aphia_ids`` when available
+
+What the API exposes
+--------------------
+
+The main public API functions are:
+
+* ``get_metadata()``
+* ``get_train_args()``
+* ``train(**args)``
+* ``get_predict_args()``
+* ``predict(**args)``
 
 Runtime behavior
 ----------------

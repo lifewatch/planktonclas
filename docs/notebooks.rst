@@ -4,25 +4,86 @@
 Overview
 --------
 
-The repository includes notebooks for:
+This page shows the notebook workflow as a sequence of practical steps.
 
-* dataset exploration
-* image transformation
-* augmentation
-* model training
-* prediction
-* prediction statistics
-* saliency and explainability
+Use this path when you want an interactive workflow instead of mainly using the CLI or browser API.
 
-They are the best choice when you want an interactive workflow.
+Notebook workflow
+-----------------
 
-The normal package install includes the Python dependencies used by these notebooks. For local notebook use, install the notebook extra in the same environment:
+The common order is:
+
+1. install the notebook-enabled package
+2. create a project
+3. validate the config
+4. optionally download the pretrained model
+5. copy the packaged notebooks into the project
+6. work through the notebooks in order
+7. inspect training, prediction, and explainability outputs
+
+Step 1: Install the notebook extra
+----------------------------------
 
 .. code-block:: bash
 
    pip install "planktonclas[notebooks]"
 
-This extra installs the Jupyter runtime packages needed to open and execute the notebooks locally.
+This installs the Jupyter runtime packages needed to open and execute the notebooks locally.
+
+Step 2: Create a project
+------------------------
+
+.. code-block:: bash
+
+   planktonclas init my_project
+
+This creates the standard project structure and a local ``config.yaml``.
+
+Step 3: Validate the config
+---------------------------
+
+.. code-block:: bash
+
+   planktonclas validate-config --config ./my_project/config.yaml
+
+Step 4: Optional pretrained model
+---------------------------------
+
+If you want to start from the published pretrained model:
+
+.. code-block:: bash
+
+   planktonclas pretrained my_project
+
+Step 5: Copy the notebooks into the project
+-------------------------------------------
+
+.. code-block:: bash
+
+   planktonclas notebooks my_project
+
+This creates ``my_project/notebooks/`` and copies the packaged notebooks there.
+
+To refresh an existing project with updated packaged notebooks:
+
+.. code-block:: bash
+
+   planktonclas notebooks my_project --force
+
+The copied notebooks auto-detect the nearest project ``config.yaml``, so they use the paths inside your local project folder rather than the installed package directory.
+They also copy ``data/data_transformation/start``, ``reference_style``, and ``end`` for the image-transformation notebook.
+
+Step 6: Work through the notebooks
+----------------------------------
+
+Recommended order:
+
+1. dataset exploration
+2. transformations and augmentation
+3. model training
+4. predictions
+5. prediction statistics
+6. saliency maps
 
 Notebook list
 -------------
@@ -48,25 +109,8 @@ Notebook list
 ``3.2-Saliency_maps.ipynb``
    Visualize explainability outputs.
 
-Finding the notebooks
----------------------
-
-Copy the packaged notebooks into your project with:
-
-.. code-block:: bash
-
-   planktonclas notebooks my_project
-
-This creates ``my_project/notebooks/`` and copies the packaged notebooks there.
-
-To refresh an existing project with updated packaged notebooks:
-
-.. code-block:: bash
-
-   planktonclas notebooks my_project --force
-
-The copied notebooks auto-detect the nearest project ``config.yaml``, so they use the paths inside your local project folder rather than the installed package directory.
-They also copy ``data/data_transformation/start``, ``reference_style``, and ``end`` for the image-transformation notebook.
+Step 7: Important notebook notes
+--------------------------------
 
 For ``1.1-Image_transformation.ipynb``:
 
@@ -76,7 +120,10 @@ For ``1.1-Image_transformation.ipynb``:
 
 For the model-based notebooks ``3.0-Computing_predictions.ipynb``, ``3.1-Prediction_statistics.ipynb``, and ``3.2-Saliency_maps.ipynb``, the most important variables are ``TIMESTAMP`` and ``MODEL_NAME`` near the top of the notebook. They are prefilled for the published pretrained model ``Phytoplankton_EfficientNetV2B0`` so the notebooks run immediately, but you should change them to your own training timestamp and checkpoint name when you want to inspect a newly trained model.
 
-If you are already running Jupyter locally, open that directory and work from there.
+How to open them
+----------------
+
+If you are already running Jupyter locally, open the copied project notebook directory and work from there.
 
 If you are inside an AI4OS deployment or a container image that ships the helper commands, you may also have:
 
@@ -85,13 +132,3 @@ If you are inside an AI4OS deployment or a container image that ships the helper
    deep-start -j
 
 That command is deployment-specific. It is not part of the local ``planktonclas`` CLI.
-
-Recommended order
------------------
-
-1. dataset exploration
-2. transformations and augmentation
-3. model training
-4. predictions
-5. prediction statistics
-6. saliency maps

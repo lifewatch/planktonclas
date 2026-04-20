@@ -4,81 +4,105 @@
 Overview
 --------
 
-You can use the package directly from Python without going through the DEEPaaS web UI. The most relevant modules are:
+This page shows the Python-based workflow as a sequence of practical steps.
 
-* ``planktonclas.config``: load and validate configuration
-* ``planktonclas.paths``: resolve data, model, log, and output directories
-* ``planktonclas.train_runfile``: run training
-* ``planktonclas.api``: load trained models and run prediction logic
-* ``planktonclas.test_utils``: prediction helpers used by inference
+Use this path when you want to work in Python code instead of mainly using the CLI or the DEEPaaS browser UI.
 
-Load a project config
----------------------
+Python workflow
+---------------
 
-.. code-block:: python
+The common order is:
 
-   from planktonclas import config
+1. install the package
+2. create a project
+3. validate the project config
+4. optionally download the pretrained model
+5. train a model
+6. inspect the outputs written to ``models/``
+7. optionally use Python code for custom inference or automation
 
-   config.set_config_path("my_project/config.yaml")
-   conf = config.get_conf_dict()
+Step 1: Install the package
+---------------------------
 
-   print(conf["general"]["images_directory"])
-   print(conf["training"]["epochs"])
+.. code-block:: bash
 
-The default template is shipped inside the package, but normal user workflows should point to a project-local ``config.yaml``.
+   pip install planktonclas
 
-Run training from Python
+What this gives you:
+
+* the package itself
+* the ``planktonclas`` CLI
+* the Python modules used for training and inference
+
+Step 2: Create a project
 ------------------------
 
-.. code-block:: python
+.. code-block:: bash
 
-   from datetime import datetime
-   from planktonclas import config, paths
-   from planktonclas.train_runfile import train_fn
+   planktonclas init my_project
 
-   config.set_config_path("my_project/config.yaml")
-   paths.CONF = config.get_conf_dict()
+This creates:
 
-   conf = config.get_conf_dict()
-   conf["training"]["epochs"] = 5
+* a project-local ``config.yaml``
+* a ``data/`` folder
+* a ``models/`` folder
 
-   timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-   train_fn(TIMESTAMP=timestamp, CONF=conf)
+Step 3: Validate the config
+---------------------------
+
+.. code-block:: bash
+
+   planktonclas validate-config --config ./my_project/config.yaml
+
+This is the easiest way to catch path or configuration problems before training.
+
+Step 4: Optional pretrained model
+---------------------------------
+
+If you want to start from the published pretrained model:
+
+.. code-block:: bash
+
+   planktonclas pretrained my_project
+
+Step 5: Train a model
+---------------------
+
+.. code-block:: bash
+
+   planktonclas train --config ./my_project/config.yaml
+
+For a quick smoke test on a demo project:
+
+.. code-block:: bash
+
+   planktonclas train --config ./my_project/config.yaml --quick
 
 This creates a new timestamped output directory under ``my_project/models/``.
 
-Inspect output paths
---------------------
+Step 6: Inspect the outputs
+---------------------------
 
-.. code-block:: python
+After training, the important outputs are typically:
 
-   from planktonclas import config, paths
+* checkpoints under ``models/<timestamp>/ckpts/``
+* logs under ``models/<timestamp>/logs/``
+* stats under ``models/<timestamp>/stats/``
+* predictions under ``models/<timestamp>/predictions/``
+* reports under ``models/<timestamp>/results/``
 
-   config.set_config_path("my_project/config.yaml")
-   paths.CONF = config.get_conf_dict()
+You can also generate report figures with:
 
-   print(paths.get_models_dir())
-   print(paths.get_checkpoints_dir())
-   print(paths.get_logs_dir())
+.. code-block:: bash
 
-Be aware that ``paths.timestamp`` controls which timestamped run directory is currently addressed.
+   planktonclas report --config ./my_project/config.yaml
 
-Load a trained model for inference
-----------------------------------
+Step 7: Use Python directly
+---------------------------
 
-.. code-block:: python
+Once the project exists and a model is available, you can use Python directly for automation, scripting, or custom inference.
 
-   from planktonclas import config, paths
-   from planktonclas.api import load_inference_model
-
-   config.set_config_path("my_project/config.yaml")
-   paths.CONF = config.get_conf_dict()
-   load_inference_model(timestamp="2026-03-26_120000", ckpt_name="best_model.keras")
-
-Run prediction from Python
---------------------------
-
-The direct inference helper used by the API is ``planktonclas.test_utils.predict``. A typical flow is:
+-----------------------------------
 
 .. code-block:: python
 
@@ -99,6 +123,15 @@ The direct inference helper used by the API is ``planktonclas.test_utils.predict
        merge=False,
        use_multiprocessing=False,
    )
+
+Most relevant modules
+---------------------
+
+* ``planktonclas.config``: load and validate configuration
+* ``planktonclas.paths``: resolve data, model, log, and output directories
+* ``planktonclas.train_runfile``: run training
+* ``planktonclas.api``: load trained models and run prediction logic
+* ``planktonclas.test_utils``: prediction helpers used by inference
 
 Practical caution
 -----------------
