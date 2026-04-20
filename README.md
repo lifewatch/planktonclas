@@ -14,6 +14,8 @@ Planktonclas: FlowCam
 - [Documentation](https://plantonclas.readthedocs.io/en/latest/)
 - [PyPI package](https://pypi.org/project/planktonclas/)
 
+**Projects:** [iMagine](https://www.imagine-ai.eu/)
+  
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
 It supports:
