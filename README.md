@@ -1,7 +1,7 @@
 Planktonclas: FlowCam
 =======================================================
 
-`planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers.
+`planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
 It supports:
 - local training from a project config
