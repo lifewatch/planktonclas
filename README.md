@@ -2,7 +2,7 @@ Planktonclas: ZooScan
 =======================================================
 
 
-**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* 
+**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and [Jonas Mortelmans](https://github.com/jonasmortelmansvliz) *(VLIZ)*
 
 This branch is focused on the **Cytosense processing workflow** at VLIZ.
 It uses the published `planktonclas` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
