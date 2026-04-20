@@ -1,9 +1,6 @@
-Phytoplankon classifier: PI10
-=========================================
+# Phytoplankton classifier: PI10
 
-
-[![DOI](https://zenodo.org/badge/666385974.svg)](https://doi.org/10.5281/zenodo.19609979)
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19609980.svg)](https://doi.org/10.5281/zenodo.19609980)
 
 **Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and Jonas Mortelmans *(VLIZ)*
 
