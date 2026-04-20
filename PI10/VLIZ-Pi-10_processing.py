@@ -6,7 +6,7 @@ Metadata
 --------
 - Authors: Jonas Mortelmans <jonas.mortelmans@vliz.be>, Wout Decrop <wout.decrop@vliz.be>
 - Created: 2025-10-03
-- Updated: 2025-10-03
+- Updated: 2025-20-04
 - Version: 1.0.0
 - Documentation: Mortelmans J., Decrop W., Heynderickx H., Cattrijsse A., Depaepe M., Van Walraeven L., Scott J., Van Oevelen D., Deneudt K., Muniz C. (2025, submitted). High-throughput image classification and morphometry though the Pi-10 imaging pipeline
 - Source: https://github.com/ai4os-hub/phyto-plankton-classification/blob/PI10/PI10/VLIZ-Pi-10_processing.py
