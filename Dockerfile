@@ -1,6 +1,6 @@
 ARG tag=2.19.0-gpu
 ARG repo_url=https://github.com/lifewatch/phyto-plankton-classification.git
-ARG branch=cyto
+ARG branch=CytoSense
 ARG model_timestamp=FlowCyto_OBSEA_2026-04-20
 
 FROM tensorflow/tensorflow:${tag}
