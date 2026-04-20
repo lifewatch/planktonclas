@@ -1,30 +1,59 @@
 Planktonclas: FlowCam
 =======================================================
 
+<table>
+  <tr>
+    <td valign="top">
+
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
 It supports:
 - local training from a project config
 - browser and service-based use through a DEEPaaS API
 - interactive notebook workflows
-- containerized execution with Docker
-- hosted deployment through AI4OS and OSCAR
+
+If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment assets, and broader project explanation, see:
+- `phyto-plankton-classification`: https://github.com/ai4os-hub/phyto-plankton-classification
 
 **Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
 
-**Projects:**
-- [iMagine](https://www.imagine-ai.eu/)
-- [DEEP Hybrid-DataCloud](https://deep-hybrid-datacloud.eu/)
-- [AI4OS](https://docs.ai4os.eu/en/latest/)
-
-**Marketplace and deployment links:**
-- [AI4OS / iMagine Marketplace](https://dashboard.cloud.imagine-ai.eu/marketplace/)
-- [AI4OS training and deployment docs](https://docs.ai4os.eu/en/latest/)
-- [OSCAR manual deployment guide](https://docs.ai4eosc.eu/en/latest/howtos/deploy/oscar-manual.html)
-- [OSCAR scripted deployment guide](https://docs.ai4eosc.eu/en/latest/howtos/deploy/oscar.html)
-
 **Related publication:**  
 [*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
+
+  </td>
+    <td valign="top">
+
+```text
+                                     +.
+                                   +:       :==.
+                                  %       .#.
+                                 #:*==*  *=
+                               -+**+*####.
+                              +********%%.
+                             +*******#**#+
+                          ********#%%####+
+                            .*====+==::=#%%*
+                            -%**   --::=-:.
+                            +=#.   -:::+.
+                    -+*++:  +.     +:::*
+                   :+.  .+- ==:   +::::*
+                   =-    == ::-+*+:::::*##-
+                   .+.  :+-.-====-:::::+%#.
+                     ===*: :++::::-=:++*#=
+                      -#. -+**:::=*++**%##+
+                     .=+-=   ##*:**#*%******=
+                     .=**+  =*++#************#-
+                             .++*****++++++++*##+
+                              :+*+#%++++++++*+.                ____________________________
+                                  ***  :###-                   |                           |
+                                ::#**.  +**+                   | PHYTOPLANKTON CLASSIFIER  |
+                               .%@+.: --@@@%                   |                           |
+                                       :.                      |___________________________|
+```
+
+  </td>
+  </tr>
+</table>
 
 ## What This Repository Gives You
 
@@ -34,7 +63,6 @@ Use this repository or package when you want to do one of these:
 2. Run predictions on single images or batches of images.
 3. Start a local API for browser-based testing or integration.
 4. Explore the workflow in Jupyter notebooks.
-5. Deploy the model through AI4OS or OSCAR.
 
 The important thing for new users is this:
 
@@ -42,19 +70,6 @@ The important thing for new users is this:
 - local training, API usage, and notebooks are **alternative entry points**
 - they all use the same package and the same project structure
 
-## Workflow Overview
-
-![Workflow overview](docs/Flowchart_github_plankton.drawio.png)
-
-The repository supports five main approaches:
-
-| Approach | Best for | Main command |
-| --- | --- | --- |
-| Local CLI | straightforward training and reporting | `planktonclas train --config ...` |
-| Local API | browser-based testing through Swagger / DEEPaaS | `planktonclas api --config ...` |
-| Notebooks | interactive exploration and debugging | `planktonclas notebooks my_project` |
-| Docker | isolated reproducible runtime | `docker run ...` |
-| AI4OS / OSCAR | hosted or remote deployment | deployment-specific |
 
 ## Choose Your Path
 
@@ -100,18 +115,9 @@ For local notebook use, install the notebook extra instead:
 pip install "planktonclas[notebooks]"
 ```
 
-### 4. I want a containerized environment
-
-Use Docker. This is useful when you want an environment that is closer to deployment, or when you want notebook and API tooling already available inside the image.
-
-### 5. I want hosted deployment
-
-Use AI4OS or OSCAR. This is useful when you want a remote API, remote notebooks, or a managed deployment flow.
-
 ## Quick Start
 
-### Option A: Install as a package
-
+### Option A: Use it locally
 [Read the Docs site](https://phyto-plankton-classification.readthedocs.io/)
 
 ```bash
@@ -156,11 +162,6 @@ For a quick smoke test on the demo project:
 planktonclas train --config ./my_project/config.yaml --quick
 ```
 
-Local API:
-
-```bash
-planktonclas api --config ./my_project/config.yaml
-```
 
 Copy notebooks into the project:
 
@@ -168,13 +169,6 @@ Copy notebooks into the project:
 planktonclas notebooks my_project
 ```
 
-To refresh a project with updated packaged notebooks:
-
-```bash
-planktonclas notebooks my_project --force
-```
-
-This also copies the transformation workspace used by `1.1-Image_transformation.ipynb` into `my_project/data/data_transformation/`.
 
 Download the published pretrained model into the project:
 
@@ -197,30 +191,27 @@ planktonclas report --config ./my_project/config.yaml
 If you leave out `--timestamp`, `planktonclas report` suggests the most recent run, lists the available timestamps, and lets you choose another one by number.
 It also lets you choose between `quick` and `full` mode. `quick` is the default and creates the core figures only; `full` also generates the threshold-based plots in the `results/` subfolders.
 
-### Option B: Use Docker
-
-This is the simplest repository-based workflow if you want the project files but do not want to install all Python dependencies on your machine.
-
-```bash
-git clone https://github.com/ai4os-hub/phyto-plankton-classification
-cd phyto-plankton-classification
-docker run -ti -p 8888:8888 -p 5000:5000 -v "$(pwd):/srv/phyto-plankton-classification" ai4oshub/phyto-plankton-classification:latest /bin/bash
-```
-
-Inside the container, you can use the same `planktonclas` CLI workflow.
-
-### Option C: Repository install for development
-
-Choose this only if you want to work on the package itself.
+### Option B: Use api
+[Read the Docs site](https://phyto-plankton-classification.readthedocs.io/)
 
 ```bash
-git clone https://github.com/ai4os-hub/phyto-plankton-classification
-cd phyto-plankton-classification
-python -m venv .venv
-.venv\Scripts\activate
-pip install -U pip
-pip install -e .
+pip install planktonclas
 ```
+
+Then create a project:
+
+```bash
+planktonclas init my_project
+```
+
+
+Local API:
+
+```bash
+planktonclas api --config ./my_project/config.yaml
+```
+
+
 
 ## Project Structure
 
@@ -313,6 +304,8 @@ planktonclas report --config ./my_project/config.yaml
 Start the API with:
 
 ```bash
+planktonclas init my_project
+planktonclas pretrained my_project
 planktonclas api --config ./my_project/config.yaml
 ```
 
@@ -402,45 +395,6 @@ To generate performance plots after training:
 planktonclas report --config ./my_project/config.yaml
 ```
 
-## Docker Workflow
-
-Run the published Docker image:
-
-```bash
-docker run -ti -p 8888:8888 -p 5000:5000 -v "$(pwd):/srv/phyto-plankton-classification" ai4oshub/phyto-plankton-classification:latest /bin/bash
-```
-
-Inside the container, you can use the same `planktonclas` CLI workflow.
-
-The container image also downloads the published pretrained model during the image build, so it is ready inside `models/` without an extra manual download step.
-
-If the image or deployment provides AI4OS helper scripts, you may also have:
-
-```bash
-deep-start -j
-deep-start --deepaas
-```
-
-Important:
-
-- a normal local install does **not** provide `deep-start`
-- for local installs, use `planktonclas ...` commands or `deepaas-run`
-- `deep-start` is typically available only in AI4OS/container/deployment environments that ship those helpers
-
-## AI4OS and OSCAR
-
-For hosted execution and deployment, see:
-
-- [AI4OS / iMagine Marketplace](https://dashboard.cloud.imagine-ai.eu/marketplace/)
-- [AI4OS docs](https://docs.ai4os.eu/en/latest/)
-- [OSCAR manual deployment guide](https://docs.ai4eosc.eu/en/latest/howtos/deploy/oscar-manual.html)
-- [OSCAR scripted deployment guide](https://docs.ai4eosc.eu/en/latest/howtos/deploy/oscar.html)
-- [Marketplace-specific notes](references/README_marketplace.md)
-
-The repository also contains deployment assets under `oscar/`, including:
-
-- `oscar/phyto-plankton-classifier.yaml`
-
 ## More Documentation
 
 The full documentation is available here:
@@ -457,12 +411,25 @@ Main documentation pages:
 - [Notebooks](docs/notebooks.rst)
 - [Reference](docs/reference.rst)
 
+For Docker, OSCAR, AI4OS, and the broader deployment-oriented repository, see:
+- https://github.com/ai4os-hub/phyto-plankton-classification
+
+
+## Development
+
+Choose this only if you want to work on the package itself.
+
+```bash
+git clone https://github.com/lifewatch/planktonclas
+cd phyto-plankton-classification
+python -m venv .venv
+.venv\Scripts\activate
+pip install -U pip
+pip install -e .
+```
+
 ## Acknowledgements
 
 If you use this project, please consider citing:
 
 > Decrop, W., Lagaisse, R., Mortelmans, J., Muñiz, C., Heredia, I., Calatrava, A., & Deneudt, K. (2025). *Automated image classification workflow for phytoplankton monitoring*. **Frontiers in Marine Science, 12**. https://doi.org/10.3389/fmars.2025.1699781
-
-and:
-
-> García, Álvaro López, et al. [A Cloud-Based Framework for Machine Learning Workloads and Applications.](https://ieeexplore.ieee.org/abstract/document/8950411/authors) IEEE Access 8 (2020): 18681-18692.

@@ -1,19 +1,23 @@
 Quickstart
 ==========
 
+This quickstart is package-focused.
+
+If you want Docker, AI4OS, OSCAR, or the broader project workflow, go to the companion repository instead:
+
+* ``phyto-plankton-classification``: https://github.com/ai4os-hub/phyto-plankton-classification
+
 Choose your path
 ----------------
 
-Most users should choose one of these workflows:
+Most package users should choose one of these:
 
-1. local training
-2. local API
-3. notebooks
+1. local training with the CLI
+2. local API usage
+3. packaged notebooks inside a local project
 
-These are alternative entry points. You do not need to use all of them.
-
-Minimal project setup
----------------------
+Option A: Use it locally
+------------------------
 
 .. code-block:: bash
 
@@ -47,19 +51,12 @@ For a quick smoke test on the demo project:
 
    planktonclas train --config ./my_project/config.yaml --quick
 
-When test evaluation is enabled, training also writes a compact metrics JSON next to the saved prediction JSON in ``my_project/models/<timestamp>/predictions/``. That file includes top-k accuracy plus precision, recall, and F1 summaries.
-
 Generate a report
 -----------------
 
 .. code-block:: bash
 
    planktonclas report --config ./my_project/config.yaml
-
-This writes evaluation images and metric files under ``my_project/models/<timestamp>/results/``.
-
-If you leave out ``--timestamp``, the CLI suggests the newest run automatically, shows the available timestamps, and lets you choose another one by number.
-If you leave out ``--mode``, the CLI suggests ``quick`` automatically. Quick mode creates the core figures only, while full mode also generates the threshold-based plots in the ``results/`` subfolders.
 
 Local API
 ---------
@@ -72,14 +69,6 @@ Then open:
 
 * ``http://127.0.0.1:5000/ui``
 * ``http://127.0.0.1:5000/api#/``
-
-You can also start DEEPaaS directly after a repository install:
-
-.. code-block:: powershell
-
-   $env:PLANKTONCLAS_CONFIG = (Resolve-Path .\my_project\config.yaml)
-   $env:DEEPAAS_V2_MODEL = "planktonclas"
-   deepaas-run --listen-ip 0.0.0.0
 
 Notebook workflow
 -----------------
@@ -96,6 +85,26 @@ For local notebook use:
 
 This copies the packaged notebooks into ``my_project/notebooks/``.
 
+Option B: Use API
+-----------------
+
+.. code-block:: bash
+
+   pip install planktonclas
+
+.. code-block:: bash
+
+   planktonclas init my_project
+
+.. code-block:: bash
+
+   planktonclas api --config ./my_project/config.yaml
+
+Then open:
+
+* ``http://127.0.0.1:5000/ui``
+* ``http://127.0.0.1:5000/api#/``
+
 Useful commands
 ---------------
 
@@ -104,14 +113,17 @@ Useful commands
    planktonclas list-models --config ./my_project/config.yaml
    planktonclas pretrained my_project
 
-Dataset notes
--------------
+Where to Go for Full Project Topics
+-----------------------------------
 
-The only mandatory input is the image directory.
+Use the full repository for:
 
-If ``data/dataset_files/`` is empty, training can create split files automatically.
+* Docker image build and runtime instructions
+* AI4OS deployment
+* OSCAR deployment
+* marketplace-facing metadata and assets
+* broader phytoplankton workflow explanation
 
-If you provide your own metadata files, the expected files are:
+Repository:
 
-* custom-split required: ``classes.txt``, ``train.txt``
-* optional: ``val.txt``, ``test.txt``, ``info.txt``, ``aphia_ids.txt``
+* https://github.com/ai4os-hub/phyto-plankton-classification
