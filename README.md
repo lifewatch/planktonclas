@@ -27,7 +27,7 @@ It was originally developed for FlowCam data, and has also been retrained or ada
 - [PI10 branch](https://github.com/lifewatch/planktonclas/tree/PI10)
 
 If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment assets, and broader project explanation, see:
-- `phyto-plankton-classification`: https://github.com/ai4os-hub/phyto-plankton-classification
+- [`phyto-plankton-classification`](https://github.com/ai4os-hub/phyto-plankton-classification)
 
 
 
