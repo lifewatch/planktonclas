@@ -13,7 +13,6 @@ Metadata
 """
 
 
-
 # === LIBRARIES ===
 import os
 from pathlib import Path
@@ -47,8 +46,6 @@ import datetime
 import threading
 import csv
 from dotenv import load_dotenv
-
-
 
 
 last_summary_date = None  # will track the last date email was sent
