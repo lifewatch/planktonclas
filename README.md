@@ -11,7 +11,7 @@ Planktonclas: FlowCam
 [*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
 
 **Resources:**
-- [Documentation](https://phyto-plankton-classification.readthedocs.io/)
+- [Documentation](https://plantonclas.readthedocs.io/en/latest/)
 - [PyPI package](https://pypi.org/project/planktonclas/)
 
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
@@ -123,7 +123,7 @@ pip install "planktonclas[notebooks]"
 ## Quick Start
 
 ### Option A: Use it locally
-[Read the Docs site](https://phyto-plankton-classification.readthedocs.io/)
+[Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
 
 ```bash
 pip install planktonclas
@@ -184,7 +184,7 @@ If you leave out `--timestamp`, `planktonclas report` suggests the most recent r
 It also lets you choose between `quick` and `full` mode. `quick` is the default and creates the core figures only; `full` also generates the threshold-based plots in the `results/` subfolders.
 
 ### Option B: Use api
-[Read the Docs site](https://phyto-plankton-classification.readthedocs.io/)
+[Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
 
 ```bash
 pip install planktonclas
@@ -402,7 +402,7 @@ planktonclas report --config ./my_project/config.yaml
 
 The full documentation is available here:
 
-- [Read the Docs site](https://phyto-plankton-classification.readthedocs.io/)
+- [Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
 - [Documentation entry page](docs/index.rst)
 
 Main documentation pages:
