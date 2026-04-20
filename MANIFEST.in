@@ -6,22 +6,13 @@ include requirements.txt
 
 graft planktonclas
 
-prune .codex_tmp_cli_demo
-prune .codex_tmp_nb_proj
-prune .github
-prune .pytest_cache
-prune .sqa
 prune data
-prune docker
 prune docs
 prune models
 prune my_project
 prune notebooks
-prune nvflare
-prune oscar
 prune references
-prune testing
-prune tests
+
 
 exclude config.yaml
 
