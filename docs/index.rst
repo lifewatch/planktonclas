@@ -21,11 +21,21 @@ Recommended Reading Path
 If you want to use the package:
 
 * :doc:`installation`
-* :doc:`quickstart`
-* :doc:`api_usage`
 * :doc:`python_usage`
+* :doc:`api_usage`
 * :doc:`notebooks`
 * :doc:`reference`
+
+Documentation structure
+-----------------------
+
+The package documentation is organized into four main parts:
+
+* :doc:`installation` for installation, quickstart, and the common local pipeline
+* :doc:`python_usage` for direct Python-based usage
+* :doc:`api_usage` for DEEPaaS API usage
+* :doc:`notebooks` for notebook-based usage
+* :doc:`reference` for the package reference and internal conventions
 
 Cross-Repository Navigation
 ---------------------------
@@ -45,8 +55,7 @@ Contents
    :caption: Package Guide
 
    installation
-   quickstart
-   api_usage
    python_usage
+   api_usage
    notebooks
    reference

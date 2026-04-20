@@ -1,5 +1,5 @@
-Installation
-============
+Installation + Quickstart
+=========================
 
 This page is for the package-first workflow.
 

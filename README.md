@@ -408,7 +408,7 @@ The full documentation is available here:
 Main documentation pages:
 
 - [Installation](docs/installation.rst)
-- [Quickstart](docs/quickstart.rst)
+- [Installation + Quickstart](docs/installation.rst)
 - [API usage](docs/api_usage.rst)
 - [Python usage](docs/python_usage.rst)
 - [Notebooks](docs/notebooks.rst)

@@ -1,5 +1,5 @@
-API Usage
-=========
+2. API Usage
+============
 
 Overview
 --------
