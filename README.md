@@ -5,6 +5,15 @@ Planktonclas: FlowCam
   <tr>
     <td valign="top">
 
+**Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
+
+**Related publication:**  
+[*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
+
+**Resources:**
+- [Documentation](https://phyto-plankton-classification.readthedocs.io/)
+- [PyPI package](https://pypi.org/project/planktonclas/)
+
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
 It supports:
@@ -15,10 +24,7 @@ It supports:
 If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment assets, and broader project explanation, see:
 - `phyto-plankton-classification`: https://github.com/ai4os-hub/phyto-plankton-classification
 
-**Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
 
-**Related publication:**  
-[*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
 
   </td>
     <td valign="top">
@@ -55,20 +61,19 @@ If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment a
   </tr>
 </table>
 
-## What This Repository Gives You
+## Install
 
-Use this repository or package when you want to do one of these:
+Install with Python 3.12 and `pip`:
 
-1. Train a phytoplankton classifier on your own image folders.
-2. Run predictions on single images or batches of images.
-3. Start a local API for browser-based testing or integration.
-4. Explore the workflow in Jupyter notebooks.
+```bash
+pip install planktonclas
+```
 
-The important thing for new users is this:
+For notebook support:
 
-- you do **not** have to use every workflow
-- local training, API usage, and notebooks are **alternative entry points**
-- they all use the same package and the same project structure
+```bash
+pip install "planktonclas[notebooks]"
+```
 
 
 ## Choose Your Path
@@ -124,12 +129,6 @@ pip install "planktonclas[notebooks]"
 pip install planktonclas
 ```
 
-For local notebook use:
-
-```bash
-pip install "planktonclas[notebooks]"
-```
-
 Then create a project:
 
 ```bash
@@ -142,13 +141,14 @@ Or create a runnable demo project:
 planktonclas init my_project --demo
 ```
 
+*OPTIONAL*
+
 Validate the generated config:
 
 ```bash
 planktonclas validate-config --config ./my_project/config.yaml
 ```
 
-At that point you can choose:
 
 Local training:
 
@@ -162,13 +162,7 @@ For a quick smoke test on the demo project:
 planktonclas train --config ./my_project/config.yaml --quick
 ```
 
-
-Copy notebooks into the project:
-
-```bash
-planktonclas notebooks my_project
-```
-
+*OPTIONAL*
 
 Download the published pretrained model into the project:
 
@@ -179,8 +173,6 @@ planktonclas pretrained my_project
 For the bundled legacy pretrained model `Phytoplankton_EfficientNetV2B0`, use the
 checkpoint `final_model.h5`. New training runs created by `planktonclas train`
 save their final exported model as `final_model.keras`.
-
-In the model-based notebooks (`3.0`, `3.1`, and `3.2`), the first variables to check are `TIMESTAMP` and `MODEL_NAME`. They are prefilled for the published pretrained model so the notebooks work out of the box, but when you want to inspect a model from your own training run you should change those two values first.
 
 Report generation after training:
 
@@ -211,6 +203,27 @@ Local API:
 planktonclas api --config ./my_project/config.yaml
 ```
 
+### Option C: I want notebooks
+
+For local notebook use:
+
+```bash
+pip install "planktonclas[notebooks]"
+```
+
+Then create a project:
+
+```bash
+planktonclas init my_project
+```
+
+Copy notebooks into the project:
+
+```bash
+planktonclas notebooks my_project
+```
+
+In the model-based notebooks (`3.0`, `3.1`, and `3.2`), the first variables to check are `TIMESTAMP` and `MODEL_NAME`. They are prefilled for the published pretrained model so the notebooks work out of the box, but when you want to inspect a model from your own training run you should change those two values first.
 
 
 ## Project Structure
@@ -284,7 +297,6 @@ Typical local workflow:
 
 ```bash
 planktonclas init my_project
-planktonclas pretrained my_project
 planktonclas notebooks my_project
 planktonclas validate-config --config ./my_project/config.yaml
 planktonclas train --config ./my_project/config.yaml
@@ -305,7 +317,6 @@ Start the API with:
 
 ```bash
 planktonclas init my_project
-planktonclas pretrained my_project
 planktonclas api --config ./my_project/config.yaml
 ```
 
@@ -331,19 +342,11 @@ Important notes:
 
 ## Notebook Workflow
 
-The repository includes notebooks for:
-
-- dataset exploration
-- preprocessing and image transformation
-- augmentation
-- model training
-- prediction
-- prediction statistics
-- saliency and explainability
 
 Copy the packaged notebooks into your project with:
 
 ```bash
+planktonclas init my_project
 planktonclas notebooks my_project
 ```
 
