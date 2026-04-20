@@ -141,9 +141,7 @@ Or create a runnable demo project:
 planktonclas init my_project --demo
 ```
 
-*OPTIONAL*
-
-Validate the generated config:
+*OPTIONAL*: Validate the generated config:
 
 ```bash
 planktonclas validate-config --config ./my_project/config.yaml
@@ -162,9 +160,7 @@ For a quick smoke test on the demo project:
 planktonclas train --config ./my_project/config.yaml --quick
 ```
 
-*OPTIONAL*
-
-Download the published pretrained model into the project:
+*OPTIONAL*: Download the published pretrained model into the project:
 
 ```bash
 planktonclas pretrained my_project
