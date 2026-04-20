@@ -44,7 +44,7 @@ The important thing for new users is this:
 
 ## Workflow Overview
 
-![Workflow overview](references/Flowchart_github_plankton.drawio.png)
+![Workflow overview](docs/Flowchart_github_plankton.drawio.png)
 
 The repository supports five main approaches:
 

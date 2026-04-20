@@ -9,9 +9,8 @@ graft planktonclas
 prune data
 prune docs
 prune models
-prune my_project
 prune notebooks
-prune references
+
 
 
 exclude config.yaml
