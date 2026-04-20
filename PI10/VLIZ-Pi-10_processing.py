@@ -47,7 +47,7 @@ import threading
 import csv
 from dotenv import load_dotenv
 
-
+print("start")
 last_summary_date = None  # will track the last date email was sent
 last_afternoon_summary_sent_day = None  # for 15:00 status update
 
