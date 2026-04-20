@@ -15,45 +15,45 @@ It supports:
 If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment assets, and broader project explanation, see:
 - `phyto-plankton-classification`: https://github.com/ai4os-hub/phyto-plankton-classification
 
+**Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
+
+**Related publication:**  
+[*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
+
   </td>
     <td valign="top">
 
 ```text
-                     +.
-                   +:       :==.
-                  %       .#.
-                 #:*==*  *=
-               -+**+*####.
-              +********%%.
-             +*******#**#+
-          ********#%%####+
-            .*====+==::=#%%*
-            -%**   --::=-:.
-            +=#.   -:::+.
-    -+*++:  +.     +:::*
-   :+.  .+- ==:   +::::*
-   =-    == ::-+*+:::::*##-
-   .+.  :+-.-====-:::::+%#.
-     ===*: :++::::-=:++*#=
-      -#. -+**:::=*++**%##+
-     .=+-=   ##*:**#*%******=
-     .=**+  =*++#************#-
-             .++*****++++++++*##+
-              :+*+#%++++++++*+.
-                  ***  :###-
-                ::#**.  +**+
-               .%@+.: --@@@%
-                       :.
+                  +.
+                +:      :==.
+               %      .#.
+              #:*==* *=
+            -+**+*####.
+           +********%%.
+          +*******#**#+
+       ********#%%####+
+         .*====+==::=#%%*
+         -%**   --::=-:.
+         +=#.   -:::+.
+ -+*++:  +.     +:::*
+:+.  .+- ==:   +::::*
+=-    == ::-+*+:::::*##-
+.+.  :+-.-====-:::::+%#.
+  ===*: :++::::-=:++*#=
+   -#. -+**:::=*++**%##+
+  .=+-=   ##*:**#*%******=
+  .=**+  =*++#************#-
+          .++*****++++++++*##+
+           :+*+#%++++++++*+.
+               ***  :###-
+             ::#**.  +**+
+            .%@+.: --@@@%
+                    :.
 ```
 
   </td>
   </tr>
 </table>
-
-**Author:** [Wout Decrop](https://github.com/woutdecrop) (VLIZ) 
-
-**Related publication:**  
-[*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
 
 ## What This Repository Gives You
 
