@@ -83,7 +83,6 @@ target/
 README.md
 VERSION
 data/
-models/
 notebooks/
 
 # Mac OS-specific storage files

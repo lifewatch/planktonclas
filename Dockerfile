@@ -1,10 +1,12 @@
 ARG tag=2.19.0-gpu
 ARG repo_url=https://github.com/lifewatch/phyto-plankton-classification.git
 ARG branch=cyto
+ARG model_timestamp=FlowCyto_OBSEA_2026-04-20
 
 FROM tensorflow/tensorflow:${tag}
 ARG repo_url
 ARG branch
+ARG model_timestamp
 
 LABEL maintainer='Wout Decrop (VLIZ)'
 LABEL version='0.1.0'
@@ -29,7 +31,8 @@ RUN for i in 1 2 3; do apt-get update && break || { echo "apt-get update failed,
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 --version && \
-    pip3 install --no-cache-dir --upgrade pip "setuptools<60.0.0" wheel
+    pip3 install --no-cache-dir --upgrade pip "setuptools<60.0.0" wheel && \
+    pip3 install --no-cache-dir "keras==3.14.0"
 
 ENV LANG=C.UTF-8
 
@@ -39,15 +42,20 @@ ENV DISABLE_AUTHENTICATION_AND_ASSUME_AUTHENTICATED_USER=yes
 ENV PLANKTONCLAS_CONFIG=/srv/config.yaml
 
 COPY config.yaml /srv/config.yaml
+COPY models /tmp/local-models
 
 # Use the cloned GitHub branch as the source for the runtime assets that
 # the packaged service still expects at startup.
+# `model_timestamp` is the only value you should normally need to change
+# when publishing a new image with an updated trained model.
 RUN pip install --no-cache-dir --ignore-installed blinker blinker && \
     pip install --no-cache-dir -r /tmp/phyto-plankton-classification/requirements.txt && \
-    mkdir -p /srv/models /srv/data && \
+    test -d "/tmp/local-models/${model_timestamp}" || \
+      (echo "Model folder not found: ${model_timestamp}" && exit 1) && \
+    mkdir -p "/srv/models/${model_timestamp}" /srv/data && \
     cp -R /tmp/phyto-plankton-classification/data/. /srv/data/ && \
-    cp -R /tmp/phyto-plankton-classification/models/. /srv/models/ && \
-    rm -rf /tmp/phyto-plankton-classification
+    cp -R "/tmp/local-models/${model_timestamp}/." "/srv/models/${model_timestamp}/" && \
+    rm -rf /tmp/phyto-plankton-classification /tmp/local-models
 
 EXPOSE 5000
 
