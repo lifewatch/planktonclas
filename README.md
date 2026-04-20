@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19663235.svg)](https://doi.org/10.5281/zenodo.19663235)
 
 
-**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and Jonas Mortelmans *(VLIZ)*
+**Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and [Jonas Mortelmans](https://github.com/jonasmortelmansvliz) *(VLIZ)*
 
 This branch is focused on the **PI10 processing workflow** at VLIZ!
 It uses the published `planktonclas` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
