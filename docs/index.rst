@@ -8,7 +8,7 @@ It is the package-first home for:
 * local installation
 * project initialization
 * training and reporting
-* local Python usage
+* local command-line usage
 * local DEEPaaS API usage
 * packaged notebook workflows
 
@@ -34,7 +34,7 @@ For most users, the common order is:
 3. validate the config
 4. train a model
 5. generate a report
-6. optionally continue with Python, API, or notebook-based usage
+6. optionally continue with command-line, API, or notebook-based usage
 
 Which page to start with
 ------------------------
@@ -46,7 +46,7 @@ Start with:
 
 Then continue with one of these workflows:
 
-* :doc:`python_usage` for direct Python-based usage
+* :doc:`python_usage` for command-line usage
 * :doc:`api_usage` for DEEPaaS API usage
 * :doc:`notebooks` for notebook-based usage
 * :doc:`reference` for the package reference and internal conventions

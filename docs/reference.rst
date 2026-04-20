@@ -51,6 +51,82 @@ Important conventions
 * ``planktonclas report`` suggests the most recent timestamp when ``--timestamp`` is omitted and can prompt for another run by number
 * ``planktonclas report`` defaults to ``quick`` mode and only generates the subfolder threshold plots in ``full`` mode
 
+Practical usage after a model is created
+----------------------------------------
+
+Once a model has been trained through the command-line, API, or notebook workflow, you can also interact with it directly from Python.
+
+Typical things you may want to do are:
+
+* load a project config
+* load a trained model from a specific timestamp
+* predict one image from Python
+* inspect where the package is writing model outputs
+
+Load the project config
+-----------------------
+
+.. code-block:: python
+
+   from planktonclas import config
+
+   config.set_config_path("my_project/config.yaml")
+   conf = config.get_conf_dict()
+
+Load a trained model
+--------------------
+
+.. code-block:: python
+
+   from planktonclas import config, paths
+   from planktonclas.api import load_inference_model
+
+   config.set_config_path("my_project/config.yaml")
+   paths.CONF = config.get_conf_dict()
+
+   load_inference_model(
+       timestamp="2026-03-26_120000",
+       ckpt_name="best_model.keras",
+   )
+
+Predict one image from Python
+-----------------------------
+
+.. code-block:: python
+
+   from planktonclas import config, paths, api, test_utils
+
+   config.set_config_path("my_project/config.yaml")
+   paths.CONF = config.get_conf_dict()
+
+   api.load_inference_model()
+   conf = config.conf_dict
+
+   labels, probabilities = test_utils.predict(
+       model=api.model,
+       X=["/absolute/path/to/image.png"],
+       conf=conf,
+       top_K=5,
+       filemode="local",
+       merge=False,
+       use_multiprocessing=False,
+   )
+
+Inspect output locations
+------------------------
+
+.. code-block:: python
+
+   from planktonclas import config, paths
+
+   config.set_config_path("my_project/config.yaml")
+   paths.CONF = config.get_conf_dict()
+
+   print(paths.get_models_dir())
+   print(paths.get_checkpoints_dir())
+   print(paths.get_logs_dir())
+   print(paths.get_predictions_dir())
+
 Source files
 ------------
 
