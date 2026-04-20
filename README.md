@@ -18,6 +18,15 @@ Planktonclas: FlowCam
   
 `planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
+This main branch is where the package itself is explained and documented.
+
+It was originally developed for FlowCam data, and has also been retrained or adapted in separate branches for other instruments and datasets:
+
+- [FlowCam / main branch](https://github.com/lifewatch/planktonclas/tree/master)
+- [Zooscan branch](https://github.com/lifewatch/planktonclas/tree/zooscan)
+- [Cyto branch](https://github.com/lifewatch/planktonclas/tree/cyto)
+- [PI10 branch](https://github.com/lifewatch/planktonclas/tree/PI10)
+
 It supports:
 - local training from a project config
 - browser and service-based use through a DEEPaaS API
