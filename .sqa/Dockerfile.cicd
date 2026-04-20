@@ -1,5 +1,0 @@
-FROM ai4oshub/ci-images:python3.12
-ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libgl1 && \
-    rm -rf /var/lib/apt/lists/*
