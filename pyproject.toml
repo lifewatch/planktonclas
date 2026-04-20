@@ -22,9 +22,9 @@ authors = [ {name= "Wout Decrop (VLIZ)", email= "wout.decrop@vliz.be"} ]
 #authors-email = [ "wout.decrop@vliz.be"]
 
 [project.urls]
-"Homepage" = "https://github.com/ai4os-hub/phyto-plankton-classification"
-"Bug Tracker" = "https://github.com/ai4os-hub/phyto-plankton-classification/issues"
-"Documentation" = "https://phyto-plankton-classification.readthedocs.io/"
+"Homepage" = "https://github.com/lifewatch/planktonclas"
+"Bug Tracker" = "https://github.com/lifewatch/planktonclas/issues"
+"Documentation" = "https://plantonclas.readthedocs.io/en/latest/"
 
 [project.scripts]
 planktonclas = "planktonclas.cli:main"

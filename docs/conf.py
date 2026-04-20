@@ -1,10 +1,10 @@
 import os
 import sys
 
-project = "Phyto Plankton Classification"
+project = "Planktonclas"
 author = "Wout Decrop"
 copyright = "2026, Wout Decrop"
-release = "0.1.0"
+release = "0.2.0"
 
 extensions = [
     "sphinx.ext.autosectionlabel",
