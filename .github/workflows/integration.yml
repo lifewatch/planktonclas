@@ -53,12 +53,22 @@ jobs:
         run: |
           python - <<'PY'
           import os
+          import re
           from pathlib import Path
 
           models_dir = Path(os.environ["PROJECT_DIR"]) / "models"
-          timestamps = sorted(path.name for path in models_dir.iterdir() if path.is_dir())
+          timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
+          timestamps = sorted(
+              path.name
+              for path in models_dir.iterdir()
+              if path.is_dir() and timestamp_pattern.match(path.name)
+          )
           if not timestamps:
-              raise SystemExit("No model timestamps found after training.")
+              available = sorted(path.name for path in models_dir.iterdir() if path.is_dir())
+              raise SystemExit(
+                  "No timestamped model runs found after training. "
+                  f"Available model directories: {available}"
+              )
 
           latest = timestamps[-1]
           ckpts_dir = models_dir / latest / "ckpts"
