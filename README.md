@@ -1,7 +1,8 @@
 Planktonclas: FlowCam
 =======================================================
 
-[![Tests](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml)
+[![Smoke Tests](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml)
+[![Integration](https://github.com/lifewatch/planktonclas/actions/workflows/integration.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/integration.yml)
 [![PyPI version](https://img.shields.io/pypi/v/planktonclas.svg)](https://pypi.org/project/planktonclas/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/planktonclas.svg)](https://pypi.org/project/planktonclas/)
 
