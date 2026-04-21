@@ -3,6 +3,15 @@ name: Integration
 on:
   workflow_dispatch:
     inputs:
+      depth:
+        description: "How deep should the manual integration run go?"
+        required: true
+        default: full
+        type: choice
+        options:
+          - basic
+          - training
+          - full
       run_pretrained:
         description: "Also test the pretrained model download command"
         required: false
@@ -50,9 +59,11 @@ jobs:
         run: python -m planktonclas.cli pretrained "$PROJECT_DIR"
 
       - name: Run quick demo training
+        if: ${{ inputs.depth == 'training' || inputs.depth == 'full' }}
         run: python -m planktonclas.cli train --config "$PROJECT_DIR/config.yaml" --quick --workers 1
 
       - name: Resolve latest model timestamp
+        if: ${{ inputs.depth == 'training' || inputs.depth == 'full' }}
         run: |
           python - <<'PY'
           import os
@@ -88,12 +99,15 @@ jobs:
           PY
 
       - name: List models
+        if: ${{ inputs.depth == 'training' || inputs.depth == 'full' }}
         run: python -m planktonclas.cli list-models --config "$PROJECT_DIR/config.yaml"
 
       - name: Generate quick report
+        if: ${{ inputs.depth == 'full' }}
         run: python -m planktonclas.cli report --config "$PROJECT_DIR/config.yaml" --timestamp "$MODEL_TIMESTAMP" --mode quick
 
       - name: Verify training artifacts
+        if: ${{ inputs.depth == 'training' || inputs.depth == 'full' }}
         run: |
           python - <<'PY'
           import json
@@ -124,6 +138,7 @@ jobs:
           PY
 
       - name: Run in-process prediction smoke check
+        if: ${{ inputs.depth == 'full' }}
         run: |
           python - <<'PY'
           import os
@@ -159,11 +174,13 @@ jobs:
           PY
 
       - name: Start API server
+        if: ${{ inputs.depth == 'full' }}
         run: |
           python -m planktonclas.cli api --config "$PROJECT_DIR/config.yaml" --host 127.0.0.1 --port "$API_PORT" > api.log 2>&1 &
           echo $! > api.pid
 
       - name: Wait for API server
+        if: ${{ inputs.depth == 'full' }}
         run: |
           python - <<'PY'
           import os
@@ -189,7 +206,7 @@ jobs:
           PY
 
       - name: Stop API server
-        if: always()
+        if: ${{ always() && inputs.depth == 'full' }}
         run: |
           if [ -f api.pid ]; then
             kill "$(cat api.pid)" || true
