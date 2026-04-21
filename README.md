@@ -177,6 +177,12 @@ planktonclas train --config ./my_project/config.yaml --quick
 planktonclas pretrained my_project
 ```
 
+*OPTIONAL*: Build an inference Docker image from your trained model run:
+
+```bash
+planktonclas docker my_project
+```
+
 For the bundled legacy pretrained model `Phytoplankton_EfficientNetV2B0`, use the
 checkpoint `final_model.h5`. New training runs created by `planktonclas train`
 save their final exported model as `final_model.keras`.
@@ -296,6 +302,7 @@ The package installs a `planktonclas` command with these main subcommands:
 - `planktonclas train --config PATH`
 - `planktonclas report --config PATH [--timestamp TS]`
 - `planktonclas api --config PATH`
+- `planktonclas docker [DIR]`
 - `planktonclas pretrained [DIR]`
 - `planktonclas list-models --config PATH`
 - `planktonclas notebooks [DIR]`
@@ -307,6 +314,7 @@ planktonclas init my_project
 planktonclas notebooks my_project
 planktonclas validate-config --config ./my_project/config.yaml
 planktonclas train --config ./my_project/config.yaml
+planktonclas docker my_project
 planktonclas report --config ./my_project/config.yaml
 ```
 
@@ -398,6 +406,19 @@ Useful outputs include:
 - saved prediction JSON files
 - saved test metrics JSON files with top-k accuracy, precision, recall, and F1 summaries
 - report images and CSV summaries under `results/`
+
+For a portable inference runtime after training, you can package a selected model run into a Docker image:
+
+```bash
+planktonclas docker my_project
+```
+
+This builds an image from the local package source and bundles the latest trained timestamp by default.
+You can choose a specific run or checkpoint with:
+
+```bash
+planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
+```
 
 To generate performance plots after training:
 

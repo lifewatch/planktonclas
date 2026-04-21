@@ -61,6 +61,7 @@ Typical things you may want to do are:
 * load a project config
 * load a trained model from a specific timestamp
 * predict one image from Python
+* call a Dockerized inference server from Python
 * inspect where the package is writing model outputs
 
 Load the project config
@@ -111,6 +112,50 @@ Predict one image from Python
        merge=False,
        use_multiprocessing=False,
    )
+
+Use a Dockerized inference server from Python
+---------------------------------------------
+
+After you have trained a model, reviewed the report, and packaged the run with ``planktonclas docker my_project``, you can talk to the running API from Python with ``requests``.
+
+Start the container, for example:
+
+.. code-block:: bash
+
+   docker run -d -p 5001:5000 --name my-plankton-api my-plankton-api:latest
+
+Then from Python:
+
+.. code-block:: python
+
+   from pathlib import Path
+
+   import requests
+
+   base_url = "http://127.0.0.1:5001"
+   health_url = f"{base_url}/api"
+   swagger_url = f"{base_url}/swagger.json"
+   predict_url = f"{base_url}/v2/models/planktonclas/predict/"
+
+   print(requests.get(health_url, timeout=5).status_code)
+   print(requests.get(swagger_url, timeout=5).status_code)
+
+   image_path = Path("example.jpg")
+   with image_path.open("rb") as handle:
+       response = requests.post(
+           predict_url,
+           files={"image": (image_path.name, handle, "image/jpeg")},
+           timeout=(10, 240),
+       )
+   response.raise_for_status()
+   print(response.json())
+
+This is the same kind of pattern a downstream script can use to:
+
+* ensure the containerized API is available
+* inspect ``/swagger.json``
+* upload an image for prediction
+* parse the returned JSON payload
 
 Inspect output locations
 ------------------------

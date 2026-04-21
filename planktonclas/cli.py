@@ -4,6 +4,7 @@ Command-line interface for planktonclas.
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from datetime import datetime
 from importlib.resources import files
 
 import requests
+import yaml
 
 from planktonclas import config, paths
 
@@ -34,6 +36,7 @@ PRETRAINED_MODEL_TAR = f"{PRETRAINED_MODEL_NAME}.tar.gz"
 PRETRAINED_MODEL_URL = (
     f"https://zenodo.org/records/15269453/files/{PRETRAINED_MODEL_TAR}?download=1"
 )
+TRAINED_MODEL_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
 
 
 def _default_config_path():
@@ -41,6 +44,26 @@ def _default_config_path():
     if os.path.exists(cwd_config):
         return cwd_config
     return config.DEFAULT_CONFIG_PATH
+
+
+def _resolve_config_argument(config_path=None, target=None):
+    if config_path:
+        return os.path.abspath(config_path)
+
+    if target:
+        target = os.path.abspath(target)
+        if os.path.isdir(target):
+            candidate = os.path.join(target, DEFAULT_PROJECT_CONFIG_NAME)
+            if not os.path.exists(candidate):
+                raise FileNotFoundError(
+                    f"No {DEFAULT_PROJECT_CONFIG_NAME} found in project directory: {target}"
+                )
+            return candidate
+        if os.path.isfile(target):
+            return target
+        raise FileNotFoundError(f"Target does not exist: {target}")
+
+    return _default_config_path()
 
 
 def _apply_config(conf_path):
@@ -115,11 +138,161 @@ def _list_model_timestamps():
             name
             for name in os.listdir(models_dir)
             if os.path.isdir(os.path.join(models_dir, name))
+            and TRAINED_MODEL_TIMESTAMP_PATTERN.match(name)
         ]
     )
     if not timestamps:
         raise FileNotFoundError(f"No models found in: {models_dir}")
     return timestamps
+
+
+def _select_latest_trained_timestamp(models_dir):
+    timestamps = sorted(
+        name
+        for name in os.listdir(models_dir)
+        if os.path.isdir(os.path.join(models_dir, name))
+        and TRAINED_MODEL_TIMESTAMP_PATTERN.match(name)
+    )
+    if not timestamps:
+        raise FileNotFoundError(f"No timestamped model runs found in: {models_dir}")
+    return timestamps[-1]
+
+
+def _resolve_model_timestamp(models_dir, explicit_timestamp=None):
+    if explicit_timestamp:
+        run_dir = os.path.join(models_dir, explicit_timestamp)
+        if not os.path.isdir(run_dir):
+            raise FileNotFoundError(f"Model run not found: {run_dir}")
+        return explicit_timestamp
+    return _select_latest_trained_timestamp(models_dir)
+
+
+def _resolve_checkpoint_name(run_dir, explicit_ckpt=None):
+    ckpt_dir = os.path.join(run_dir, "ckpts")
+    if not os.path.isdir(ckpt_dir):
+        raise FileNotFoundError(f"No checkpoints directory found: {ckpt_dir}")
+
+    available = sorted(
+        name
+        for name in os.listdir(ckpt_dir)
+        if name.endswith((".keras", ".h5"))
+    )
+    if not available:
+        raise FileNotFoundError(f"No supported checkpoints found in: {ckpt_dir}")
+
+    if explicit_ckpt:
+        if explicit_ckpt not in available:
+            raise FileNotFoundError(
+                f"Checkpoint {explicit_ckpt} not found in {ckpt_dir}. Available: {available}"
+            )
+        return explicit_ckpt
+
+    for preferred in ("best_model.keras", "final_model.keras", "final_model.h5"):
+        if preferred in available:
+            return preferred
+
+    return available[-1]
+
+
+def _load_yaml(path):
+    with open(path, "r", encoding="utf-8") as handle:
+        return yaml.safe_load(handle)
+
+
+def _dump_yaml(path, data):
+    with open(path, "w", encoding="utf-8") as handle:
+        yaml.safe_dump(data, handle, sort_keys=False)
+
+
+def _copy_if_exists(src_root, dst_root, relative_path):
+    src = os.path.join(src_root, relative_path)
+    if os.path.exists(src):
+        dst = os.path.join(dst_root, relative_path)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+
+
+def _prepare_docker_project_config(source_config_path, target_config_path, timestamp, ckpt_name):
+    conf = _load_yaml(source_config_path)
+    conf["general"]["base_directory"]["value"] = "."
+    conf["general"]["images_directory"]["value"] = "."
+    conf["testing"]["timestamp"]["value"] = timestamp
+    conf["testing"]["ckpt_name"]["value"] = ckpt_name
+    conf["testing"]["output_directory"]["value"] = "/tmp/planktonclas-predictions"
+    _dump_yaml(target_config_path, conf)
+
+
+def _copy_docker_build_context(context_dir, project_dir, timestamp, ckpt_name):
+    package_files = [
+        "pyproject.toml",
+        "requirements.txt",
+        "README.md",
+        "VERSION",
+        "MANIFEST.in",
+        "Dockerfile",
+    ]
+    for relative_path in package_files:
+        _copy_if_exists(PACKAGE_ROOT, context_dir, relative_path)
+
+    package_src = os.path.join(PACKAGE_ROOT, "planktonclas")
+    package_dst = os.path.join(context_dir, "planktonclas")
+    shutil.copytree(package_src, package_dst, dirs_exist_ok=True)
+
+    project_dst = os.path.join(context_dir, "project")
+    os.makedirs(project_dst, exist_ok=True)
+
+    _prepare_docker_project_config(
+        os.path.join(project_dir, DEFAULT_PROJECT_CONFIG_NAME),
+        os.path.join(project_dst, DEFAULT_PROJECT_CONFIG_NAME),
+        timestamp=timestamp,
+        ckpt_name=ckpt_name,
+    )
+
+    src_run_dir = os.path.join(project_dir, "models", timestamp)
+    dst_models_dir = os.path.join(project_dst, "models")
+    os.makedirs(dst_models_dir, exist_ok=True)
+    shutil.copytree(
+        src_run_dir,
+        os.path.join(dst_models_dir, timestamp),
+        dirs_exist_ok=True,
+    )
+
+
+def build_docker_image(args):
+    project_dir = _resolve_project_dir(args.directory, args.config)
+    models_dir = os.path.join(project_dir, "models")
+    if not os.path.isdir(models_dir):
+        raise FileNotFoundError(f"No models directory found: {models_dir}")
+
+    timestamp = _resolve_model_timestamp(models_dir, args.timestamp)
+    run_dir = os.path.join(models_dir, timestamp)
+    ckpt_name = _resolve_checkpoint_name(run_dir, args.ckpt_name)
+    image_tag = args.tag or f"planktonclas-inference:{timestamp.lower()}"
+    docker_executable = _resolve_executable("docker")
+
+    with tempfile.TemporaryDirectory(prefix="planktonclas-docker-") as context_dir:
+        _copy_docker_build_context(context_dir, project_dir, timestamp, ckpt_name)
+        command = [
+            docker_executable,
+            "build",
+            "--tag",
+            image_tag,
+            "--build-arg",
+            f"base_image={args.base_image}",
+            context_dir,
+        ]
+        completed = subprocess.run(command, check=False)
+        if completed.returncode != 0:
+            raise RuntimeError(
+                "Docker build failed. "
+                f"Project: {project_dir}, timestamp: {timestamp}, checkpoint: {ckpt_name}"
+            )
+
+    print(f"Docker image built successfully: {image_tag}")
+    print(f"Model run: {timestamp}")
+    print(f"Checkpoint: {ckpt_name}")
+    print(f"Base image: {args.base_image}")
+    print(f"Run with: docker run -p 5000:5000 {image_tag}")
 
 
 def _choose_report_timestamp(explicit_timestamp=None):
@@ -220,7 +393,7 @@ def init_project(args):
 
 
 def validate_config(args):
-    conf_path = os.path.abspath(args.config or _default_config_path())
+    conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
     print(f"Configuration OK: {config.CONF_PATH}")
     print(f"Base directory: {paths.get_base_dir()}")
@@ -230,7 +403,7 @@ def validate_config(args):
 
 
 def train_model(args):
-    conf_path = os.path.abspath(args.config or _default_config_path())
+    conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
 
     from planktonclas.train_runfile import train_fn
@@ -249,7 +422,7 @@ def train_model(args):
 
 
 def generate_report_cmd(args):
-    conf_path = os.path.abspath(args.config or _default_config_path())
+    conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
 
     from planktonclas.report_utils import generate_report
@@ -274,7 +447,7 @@ def generate_report_cmd(args):
 
 
 def run_api(args):
-    conf_path = os.path.abspath(args.config or _default_config_path())
+    conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     env = os.environ.copy()
     env[config.CONFIG_ENV_VAR] = conf_path
     env["DEEPAAS_V2_MODEL"] = "planktonclas"
@@ -288,7 +461,7 @@ def run_api(args):
 
 
 def list_models(args):
-    conf_path = os.path.abspath(args.config or _default_config_path())
+    conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
 
     models_dir = paths.get_models_dir()
@@ -393,11 +566,21 @@ def build_parser():
     validate_parser = subparsers.add_parser(
         "validate-config", help="Validate a config file and print resolved paths."
     )
+    validate_parser.add_argument(
+        "target",
+        nargs="?",
+        help="Optional project directory or config.yaml path.",
+    )
     validate_parser.add_argument("--config")
     validate_parser.set_defaults(func=validate_config)
 
     train_parser = subparsers.add_parser(
         "train", help="Train a model using a config file."
+    )
+    train_parser.add_argument(
+        "target",
+        nargs="?",
+        help="Optional project directory or config.yaml path.",
     )
     train_parser.add_argument("--config")
     train_parser.add_argument(
@@ -427,6 +610,11 @@ def build_parser():
         "report",
         help="Generate evaluation plots and metrics for a trained run.",
     )
+    report_parser.add_argument(
+        "target",
+        nargs="?",
+        help="Optional project directory or config.yaml path.",
+    )
     report_parser.add_argument("--config")
     report_parser.add_argument(
         "--timestamp",
@@ -442,6 +630,11 @@ def build_parser():
     api_parser = subparsers.add_parser(
         "api", help="Launch the DEEPaaS API with a selected config file."
     )
+    api_parser.add_argument(
+        "target",
+        nargs="?",
+        help="Optional project directory or config.yaml path.",
+    )
     api_parser.add_argument("--config")
     api_parser.add_argument("--host", default="127.0.0.1")
     api_parser.add_argument("--port", type=int, default=5000)
@@ -449,6 +642,11 @@ def build_parser():
 
     models_parser = subparsers.add_parser(
         "list-models", help="List models inside the configured models directory."
+    )
+    models_parser.add_argument(
+        "target",
+        nargs="?",
+        help="Optional project directory or config.yaml path.",
     )
     models_parser.add_argument("--config")
     models_parser.set_defaults(func=list_models)
@@ -477,6 +675,31 @@ def build_parser():
         help="Re-download into an existing pretrained model directory.",
     )
     pretrained_parser.set_defaults(func=download_pretrained)
+
+    docker_parser = subparsers.add_parser(
+        "docker",
+        help="Build an inference Docker image for a trained model run.",
+    )
+    docker_parser.add_argument("directory", nargs="?", default=".")
+    docker_parser.add_argument("--config")
+    docker_parser.add_argument(
+        "--timestamp",
+        help="Timestamped model directory to package. Defaults to the latest trained run.",
+    )
+    docker_parser.add_argument(
+        "--ckpt-name",
+        help="Checkpoint name inside the selected model run. Defaults to best_model.keras, then final_model.keras, then final_model.h5.",
+    )
+    docker_parser.add_argument(
+        "--tag",
+        help="Docker image tag to build. Defaults to planktonclas-inference:<timestamp>.",
+    )
+    docker_parser.add_argument(
+        "--base-image",
+        default="tensorflow/tensorflow:2.19.0",
+        help="Base Docker image to use for the inference container.",
+    )
+    docker_parser.set_defaults(func=build_docker_image)
 
     return parser
 

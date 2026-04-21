@@ -1,0 +1,43 @@
+ARG base_image=tensorflow/tensorflow:2.19.0
+
+FROM ${base_image}
+
+LABEL maintainer="Wout Decrop (VLIZ)"
+LABEL org.opencontainers.image.title="planktonclas inference"
+LABEL org.opencontainers.image.description="Inference image for a packaged planktonclas model run"
+
+ENV LANG=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    DISABLE_AUTHENTICATION_AND_ASSUME_AUTHENTICATED_USER=yes \
+    DEEPAAS_V2_MODEL=planktonclas \
+    PLANKTONCLAS_CONFIG=/srv/project/config.yaml
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp/app
+
+COPY pyproject.toml requirements.txt README.md VERSION MANIFEST.in /tmp/app/
+COPY planktonclas /tmp/app/planktonclas
+
+RUN python3 --version && \
+    pip3 install --no-cache-dir --upgrade pip "setuptools<60.0.0" wheel && \
+    pip3 install --no-cache-dir "keras==3.14.0" && \
+    pip3 install --no-cache-dir --ignore-installed blinker blinker && \
+    pip3 install --no-cache-dir /tmp/app
+
+WORKDIR /srv/project
+
+COPY project/config.yaml /srv/project/config.yaml
+COPY project/models /srv/project/models
+
+RUN mkdir -p /tmp/planktonclas-predictions
+
+EXPOSE 5000
+
+CMD ["deepaas-run", "--listen-ip", "0.0.0.0", "--listen-port", "5000"]

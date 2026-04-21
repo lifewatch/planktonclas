@@ -15,6 +15,7 @@ The common order is:
 3. optionally download the pretrained model
 4. train a model
 5. generate a report
+6. optionally build an inference Docker image
 
 Step 1: Create a project
 ------------------------
@@ -67,11 +68,30 @@ For a quick smoke test on a demo project:
 Step 5: Generate a report
 -------------------------
 
+Before packaging a model run into Docker, it is usually best to inspect the report first and confirm that you are happy with the trained run.
+
 .. code-block:: bash
 
    planktonclas report --config ./my_project/config.yaml
 
 If you leave out ``--timestamp``, ``planktonclas report`` suggests the newest run automatically.
+
+Step 6: Optional inference Docker image
+---------------------------------------
+
+If you want a more stable packaged inference runtime after training:
+
+.. code-block:: bash
+
+   planktonclas docker my_project
+
+This packages the latest trained model run into a Docker image that serves the API for inference.
+
+You can also select a specific run:
+
+.. code-block:: bash
+
+   planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
 
 Project structure
 -----------------

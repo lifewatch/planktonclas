@@ -17,9 +17,10 @@ The common order is:
 2. create a project
 3. validate the config
 4. optionally download the pretrained model
-5. start the API
-6. use the training endpoint or prediction endpoint
-7. inspect the outputs written by the package
+5. optionally build an inference Docker image
+6. start the API
+7. use the training endpoint or prediction endpoint
+8. inspect the outputs written by the package
 
 Step 1: Install the package
 ---------------------------
@@ -53,7 +54,24 @@ If you want to start from the published pretrained model:
 
    planktonclas pretrained my_project
 
-Step 5: Start the API
+Step 5: Optional inference Docker image
+---------------------------------------
+
+After training a model, you can package it into a Docker image for a more stable inference runtime:
+
+.. code-block:: bash
+
+   planktonclas docker my_project
+
+Then run the API from Docker:
+
+.. code-block:: bash
+
+   docker run -p 5001:5000 planktonclas-inference:<timestamp>
+
+Inside the container, the API listens on port ``5000``. You can map any free host port.
+
+Step 6: Start the API
 ---------------------
 
 The DEEPaaS entry point is defined in ``pyproject.toml``:
@@ -84,7 +102,7 @@ After a repository install, you can also start the API directly:
    $env:DEEPAAS_V2_MODEL = "planktonclas"
    deepaas-run --listen-ip 0.0.0.0
 
-Step 6: Train through the API
+Step 7: Train through the API
 -----------------------------
 
 Typical browser flow:
@@ -112,7 +130,7 @@ Important limitation:
 * the API cannot open a server-side folder chooser through Swagger UI
 * for local use, it is usually better to set the path in ``config.yaml`` before starting the API
 
-Step 7: Run prediction through the API
+Step 8: Run prediction through the API
 --------------------------------------
 
 The prediction endpoint accepts:

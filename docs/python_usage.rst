@@ -19,7 +19,8 @@ The common order is:
 4. optionally download the pretrained model
 5. train a model
 6. generate a report
-7. continue with prediction, API usage, notebooks, or model inspection
+7. optionally build an inference Docker image
+8. continue with prediction, API usage, notebooks, or model inspection
 
 Step 1: Install the package
 ---------------------------
@@ -106,7 +107,22 @@ Important note:
 
 If you leave out ``--timestamp``, ``planktonclas report`` suggests the newest run automatically.
 
-Step 7: What you can do after training
+Step 7: Optional inference Docker image
+---------------------------------------
+
+Once you are happy with the report for a trained run, you can package that run into a Docker image for more stable API-based inference:
+
+.. code-block:: bash
+
+   planktonclas docker my_project
+
+You can select a specific run and checkpoint if needed:
+
+.. code-block:: bash
+
+   planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
+
+Step 8: What you can do after training
 --------------------------------------
 
 Once a model has been created, you can continue in several directions.
@@ -118,6 +134,7 @@ You can:
 * inspect stats under ``models/<timestamp>/stats/``
 * inspect saved predictions under ``models/<timestamp>/predictions/``
 * inspect reports under ``models/<timestamp>/results/``
+* package a run into Docker with ``planktonclas docker my_project``
 * start the API with ``planktonclas api --config ./my_project/config.yaml``
 * copy notebooks with ``planktonclas notebooks my_project``
 * list available trained runs with ``planktonclas list-models --config ./my_project/config.yaml``
@@ -134,6 +151,7 @@ Useful command summary
    planktonclas train --config ./my_project/config.yaml
    planktonclas train --config ./my_project/config.yaml --quick
    planktonclas report --config ./my_project/config.yaml
+   planktonclas docker my_project
    planktonclas list-models --config ./my_project/config.yaml
 
 Practical caution
