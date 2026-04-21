@@ -14,9 +14,9 @@ albumentations~=2.0.5
 
 ## API runtime
 deepaas==2.3.2
-aiohttp==3.11.16
+aiohttp==3.13.4
 webargs==5.5.3
-marshmallow==3.21.1
+marshmallow==3.26.2
 apispec==3.3.2
 aiohttp-apispec==2.2.3
 flaat~=0.8.4

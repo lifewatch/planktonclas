@@ -9,6 +9,9 @@ on:
         default: false
         type: boolean
 
+permissions:
+  contents: read
+
 jobs:
   integration:
     runs-on: ubuntu-latest
