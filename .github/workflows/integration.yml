@@ -1,0 +1,190 @@
+name: Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_pretrained:
+        description: "Also test the pretrained model download command"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PROJECT_DIR: ci_demo_project
+      API_PORT: "5005"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install package
+        run: python -m pip install -e .
+
+      - name: Initialize demo project
+        run: python -m planktonclas.cli init "$PROJECT_DIR" --demo
+
+      - name: Validate config
+        run: python -m planktonclas.cli validate-config --config "$PROJECT_DIR/config.yaml"
+
+      - name: Copy notebooks
+        run: python -m planktonclas.cli notebooks "$PROJECT_DIR"
+
+      - name: Optionally download pretrained model
+        if: ${{ inputs.run_pretrained }}
+        run: python -m planktonclas.cli pretrained "$PROJECT_DIR"
+
+      - name: Run quick demo training
+        run: python -m planktonclas.cli train --config "$PROJECT_DIR/config.yaml" --quick --workers 1
+
+      - name: Resolve latest model timestamp
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          models_dir = Path(os.environ["PROJECT_DIR"]) / "models"
+          timestamps = sorted(path.name for path in models_dir.iterdir() if path.is_dir())
+          if not timestamps:
+              raise SystemExit("No model timestamps found after training.")
+
+          latest = timestamps[-1]
+          ckpts_dir = models_dir / latest / "ckpts"
+          if (ckpts_dir / "best_model.keras").exists():
+              ckpt_name = "best_model.keras"
+          elif (ckpts_dir / "final_model.keras").exists():
+              ckpt_name = "final_model.keras"
+          else:
+              raise SystemExit(f"No supported checkpoint found in {ckpts_dir}")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              handle.write(f"MODEL_TIMESTAMP={latest}\n")
+              handle.write(f"MODEL_CKPT={ckpt_name}\n")
+          PY
+
+      - name: List models
+        run: python -m planktonclas.cli list-models --config "$PROJECT_DIR/config.yaml"
+
+      - name: Generate quick report
+        run: python -m planktonclas.cli report --config "$PROJECT_DIR/config.yaml" --timestamp "$MODEL_TIMESTAMP" --mode quick
+
+      - name: Verify training artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          project_dir = Path(os.environ["PROJECT_DIR"])
+          model_dir = project_dir / "models" / os.environ["MODEL_TIMESTAMP"]
+
+          expected_paths = [
+              model_dir / "ckpts" / os.environ["MODEL_CKPT"],
+              model_dir / "conf" / "conf.json",
+              model_dir / "logs" / "training.log",
+              model_dir / "stats" / "stats.json",
+              model_dir / "predictions",
+              model_dir / "results",
+              project_dir / "notebooks",
+          ]
+          missing = [str(path) for path in expected_paths if not path.exists()]
+          if missing:
+              raise SystemExit("Missing expected artifacts:\n" + "\n".join(missing))
+
+          stats_path = model_dir / "stats" / "stats.json"
+          with open(stats_path, encoding="utf-8") as handle:
+              stats = json.load(handle)
+          if "timestamp" not in stats:
+              raise SystemExit(f"Expected timestamp in {stats_path}")
+          PY
+
+      - name: Run in-process prediction smoke check
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          from deepaas.model.v2.wrapper import UploadedFile
+
+          from planktonclas import api, config, paths
+
+          project_dir = Path(os.environ["PROJECT_DIR"])
+          config_path = project_dir / "config.yaml"
+          config.set_config_path(str(config_path.resolve()))
+          paths.CONF = config.get_conf_dict()
+
+          image_path = next(project_dir.joinpath("data", "images").rglob("*.jpg"))
+          uploaded = UploadedFile(
+              name="data",
+              filename=str(image_path.resolve()),
+              content_type="image/jpeg",
+              original_filename=image_path.name,
+          )
+
+          result = api.predict(
+              image=uploaded,
+              timestamp=os.environ["MODEL_TIMESTAMP"],
+              ckpt_name=os.environ["MODEL_CKPT"],
+          )
+          if result.get("status") != "OK":
+              raise SystemExit(f"Prediction failed: {result}")
+          predictions = result.get("predictions", {})
+          if not predictions.get("filenames"):
+              raise SystemExit(f"Prediction payload missing filenames: {predictions}")
+          PY
+
+      - name: Start API server
+        run: |
+          python -m planktonclas.cli api --config "$PROJECT_DIR/config.yaml" --host 127.0.0.1 --port "$API_PORT" > api.log 2>&1 &
+          echo $! > api.pid
+
+      - name: Wait for API server
+        run: |
+          python - <<'PY'
+          import os
+          import time
+          import urllib.request
+
+          port = os.environ["API_PORT"]
+          url = f"http://127.0.0.1:{port}/swagger.json"
+          deadline = time.time() + 180
+          last_error = None
+
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen(url, timeout=10) as response:
+                      if response.status == 200:
+                          print(f"API responded at {url}")
+                          raise SystemExit(0)
+              except Exception as exc:
+                  last_error = exc
+                  time.sleep(5)
+
+          raise SystemExit(f"API did not become ready: {last_error}")
+          PY
+
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f api.pid ]; then
+            kill "$(cat api.pid)" || true
+          fi
+
+      - name: Upload API log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-api-log
+          path: api.log

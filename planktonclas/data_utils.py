@@ -14,6 +14,7 @@ import logging
 import os
 import queue
 import random
+import re
 import subprocess
 import sys
 import threading
@@ -36,7 +37,62 @@ from planktonclas import utils
 logger = logging.getLogger(__name__)
 
 
+_LABEL_PATTERN = re.compile(r"^(?P<path>.+?)\s+(?P<label>-?\d+)\s*$")
+
+
+def _iter_nonempty_lines(file_path):
+    with open(file_path, "r", encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            yield line
+
+
+def split_file_has_entries(splits_dir, split_name="train"):
+    split_path = os.path.join(splits_dir, f"{split_name}.txt")
+    if not os.path.isfile(split_path):
+        return False
+
+    return any(True for _ in _iter_nonempty_lines(split_path))
+
+
+def _parse_split_line(line, split_path):
+    if "\t" in line:
+        rel_path, label = line.rsplit("\t", 1)
+    else:
+        match = _LABEL_PATTERN.match(line)
+        if match is None:
+            raise ValueError(
+                f"Invalid split entry in {split_path}: {line!r}. "
+                "Expected '<relative path><whitespace><integer label>'."
+            )
+        rel_path = match.group("path")
+        label = match.group("label")
+
+    rel_path = rel_path.strip()
+    label = label.strip()
+    if not rel_path:
+        raise ValueError(f"Invalid empty path entry in {split_path}.")
+    return rel_path, int(label)
+
+
+def _read_split_entries(split_path):
+    entries = []
+    for line in _iter_nonempty_lines(split_path):
+        rel_path, label = _parse_split_line(line, split_path)
+        entries.append((rel_path, label))
+    return entries
+
+
+def _read_text_lines(file_path):
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(file_path)
+    return [line for line in _iter_nonempty_lines(file_path)]
+
+
 def create_data_splits(splits_dir, im_dir, split_ratios=[0.7, 0.15, 0.15]):
+    os.makedirs(splits_dir, exist_ok=True)
     train_txt_file = os.path.join(splits_dir, "train.txt")
     test_txt_file = os.path.join(splits_dir, "test.txt")
     val_txt_file = os.path.join(splits_dir, "val.txt")
@@ -53,7 +109,7 @@ def create_data_splits(splits_dir, im_dir, split_ratios=[0.7, 0.15, 0.15]):
             file_paths.append(relative_path)
 
     # Get a list of folder names within the "im_dir" directory
-    folder_names = next(os.walk(im_dir))[1]
+    folder_names = sorted(next(os.walk(im_dir))[1])
 
     # Assign numbers based on the location of each folder in the list
     folder_numbers = {
@@ -136,7 +192,7 @@ def write_text_file(file_list, file_path, folder_numbers):
     with open(file_path, "w") as f:
         for file in file_list:
             file = file.replace("\\", "/")  # Assuming UNIX-like path separator
-            f.write(file + " " + str(folder_numbers[file.split("/")[0]]) +
+            f.write(file + "\t" + str(folder_numbers[file.split("/")[0]]) +
                     "\n")
 
 
@@ -167,18 +223,10 @@ def load_data_splits(splits_dir, im_dir, split_name="train"):
 
     # Loading splits
     logger.info("[data] Loading %s split", split_name)
-    split = np.genfromtxt(
-        os.path.join(splits_dir, "{}.txt".format(split_name)),
-        dtype="str",
-        delimiter=" ",
-    )
-    X = np.array([os.path.join(im_dir, i) for i in split[:, 0]])
-
-    # TODO Check this part of the code
-    if len(split.shape) == 2:
-        y = split[:, 1].astype(np.int32)
-    else:  # maybe test file has not labels
-        y = None
+    split_path = os.path.join(splits_dir, "{}.txt".format(split_name))
+    split_entries = _read_split_entries(split_path)
+    X = np.array([os.path.join(im_dir, rel_path) for rel_path, _ in split_entries])
+    y = np.array([label for _, label in split_entries], dtype=np.int32)
 
     return X, y
 
@@ -192,10 +240,9 @@ def load_class_names(splits_dir):
     Numpy array of shape (N) containing strs with class names
     """
     logger.info("[data] Loading class names")
-    class_names = np.genfromtxt(
-        os.path.join(splits_dir, "classes.txt"),
-        dtype="str",
-        delimiter="/n",
+    class_names = np.array(
+        _read_text_lines(os.path.join(splits_dir, "classes.txt")),
+        dtype=str,
     )
     return class_names
 
@@ -210,10 +257,9 @@ def load_aphia_ids(splits_dir):
     """
     logger.info("[data] Loading aphia IDs")
     try:
-        aphia_ids = np.genfromtxt(
-            os.path.join(splits_dir, "aphia_ids.txt"),
-            dtype="str",
-            delimiter="/n",
+        aphia_ids = np.array(
+            _read_text_lines(os.path.join(splits_dir, "aphia_ids.txt")),
+            dtype=str,
         )
     except BaseException:
         aphia_ids = None
@@ -230,10 +276,9 @@ def load_class_info(splits_dir):
     Numpy array of shape (N) containing strs with class names
     """
     logger.info("[data] Loading class info")
-    class_info = np.genfromtxt(
-        os.path.join(splits_dir, "info.txt"),
-        dtype="str",
-        delimiter="/n",
+    class_info = np.array(
+        _read_text_lines(os.path.join(splits_dir, "info.txt")),
+        dtype=str,
     )
     return class_info
 

@@ -47,6 +47,7 @@ from planktonclas.data_utils import (
     load_aphia_ids,
     load_class_names,
     load_data_splits,
+    split_file_has_entries,
 )
 from planktonclas.optimizers import customAdam
 from planktonclas import test_utils
@@ -177,7 +178,7 @@ def train_fn(TIMESTAMP, CONF):
     utils.backup_splits()
     log_step("Writing run log to: %s", display_path(run_log_path))
 
-    if "train.txt" not in os.listdir(paths.get_ts_splits_dir()):
+    if not split_file_has_entries(paths.get_ts_splits_dir(), split_name="train"):
         if not CONF["dataset"]["split_ratios"]:
             if CONF["training"]["use_validation"] & CONF["training"]["use_test"]:
                 split_ratios = [0.8, 0.1, 0.1]
@@ -209,7 +210,7 @@ def train_fn(TIMESTAMP, CONF):
 
     if (
         CONF["training"]["use_validation"]
-        and "val.txt" in os.listdir(paths.get_ts_splits_dir())
+        and split_file_has_entries(paths.get_ts_splits_dir(), split_name="val")
     ):
         X_val, y_val = load_data_splits(
             splits_dir=paths.get_ts_splits_dir(),

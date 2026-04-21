@@ -199,7 +199,15 @@ def init_project(args):
         )
         _write_placeholder(
             os.path.join(target_dir, "data", "dataset_files", "train.txt"),
-            "# relative/image/path.jpg 0\n",
+            "# relative/image/path.jpg\t0\n",
+        )
+        _write_placeholder(
+            os.path.join(target_dir, "data", "dataset_files", "val.txt"),
+            "# relative/image/path.jpg\t0\n",
+        )
+        _write_placeholder(
+            os.path.join(target_dir, "data", "dataset_files", "test.txt"),
+            "# relative/image/path.jpg\t0\n",
         )
 
     print(f"Initialized project at: {target_dir}")

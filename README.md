@@ -1,6 +1,10 @@
 Planktonclas: FlowCam
 =======================================================
 
+[![Tests](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml)
+[![PyPI version](https://img.shields.io/pypi/v/planktonclas.svg)](https://pypi.org/project/planktonclas/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/planktonclas.svg)](https://pypi.org/project/planktonclas/)
+
 <table>
   <tr>
     <td valign="top">
@@ -13,6 +17,7 @@ Planktonclas: FlowCam
 **Resources:**
 - [Documentation](https://plantonclas.readthedocs.io/en/latest/)
 - [PyPI package](https://pypi.org/project/planktonclas/)
+- [Package downloads](https://pypi.org/project/planktonclas/)
 
 **Projects:** [iMagine](https://www.imagine-ai.eu/)
   
@@ -430,6 +435,8 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -U pip
 pip install -e .
+pip install -e ".[dev]"
+python -m pytest
 ```
 
 ## Acknowledgements
