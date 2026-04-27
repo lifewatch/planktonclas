@@ -11,9 +11,6 @@ env/
 
 # C extensions
 *.so
-#data/*
-#models/*
-myenv/* 
 
 # Distribution / packaging
 .Python
@@ -85,11 +82,6 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
-# exclude data from source control by default
-# data/
-# !data/change_images/
-# phytoplankton_species_classifier/
-# phytoplankton_species_classifier.egg-info/
 # Mac OS-specific storage files
 .DS_Store
 
@@ -154,30 +146,6 @@ GTAGS
 
 # Things specific to this project 
 ###################################
-planktonclas/webpage/templates/labels.html
-
-my_project/*
-my_project
-
-planktonclas/run_file.ipynb
-.Trash-0
-
 models/*
 !models/.gitkeep
-!models/phytoplankton_vliz/*
-!models/Phytoplankton_EfficientNetV2B0/*
-
-notebooks\3.2-Saliency_maps.ipynb
-flowcam_2021_TEMP.csv
-compute.ipynb
-notebooks/1.1-Image_transormation_not_finished.ipynb
-notebooks/3.2-Saliency_maps
-notebooks/test.ipynb
-notebooks/test copy.ipynb
-notebooks/3.1-Prediction_statistics_old.ipynb
-notebooks/3.2-Saliency_maps copy.ipynb
-notebooks/test copy 2.ipynb
-planktonclas/train_iter.py
-planktonclas/testing.ipynb
-
 data/images/*

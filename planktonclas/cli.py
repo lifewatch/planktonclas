@@ -29,7 +29,7 @@ DEFAULT_NOTEBOOKS_DIR = _resource_path("resources", "notebooks")
 DEFAULT_DEMO_IMAGES_DIR = _resource_path("resources", "demo-images")
 DEFAULT_DEMO_SPLITS_DIR = _resource_path("resources", "dataset_files")
 DEFAULT_TRANSFORMATION_DATA_DIR = _resource_path("resources", "data_transformation")
-PRETRAINED_MODEL_NAME = model_utils.PRETRAINED_MODEL_NAME
+PRETRAINED_MODEL_NAME = model_utils.DEFAULT_PRETRAINED_MODEL
 TRAINED_MODEL_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
 
 
@@ -458,7 +458,14 @@ def list_models(args):
 
     print(f"Models in {models_dir}:")
     for name in entries:
-        print(name)
+        if name in model_utils.PRETRAINED_MODELS:
+            metadata = model_utils.get_pretrained_metadata(name)
+            print(
+                f"{name} | architecture={metadata['architecture']} | "
+                f"version={metadata['version']} | checkpoint={metadata['checkpoint_name']}"
+            )
+        else:
+            print(name)
 
 
 def notebooks(args):
@@ -488,12 +495,19 @@ def notebooks(args):
 def download_pretrained(args):
     project_dir = _resolve_project_dir(args.directory, args.config)
     models_dir = os.path.join(project_dir, "models")
+    selected_model = args.model or PRETRAINED_MODEL_NAME
     target_dir = model_utils.ensure_pretrained_model(
         models_dir,
-        modelname=PRETRAINED_MODEL_NAME,
+        modelname=selected_model,
+        version=args.version,
         force=args.force,
     )
+    metadata = model_utils.get_pretrained_metadata(selected_model, args.version)
     print(f"Pretrained model available at: {target_dir}")
+    print(f"Name: {metadata['name']}")
+    print(f"Architecture: {metadata['architecture']}")
+    print(f"Version: {metadata['version']}")
+    print(f"Checkpoint: {metadata['checkpoint_name']}")
 
 
 def build_parser():
@@ -618,10 +632,21 @@ def build_parser():
 
     pretrained_parser = subparsers.add_parser(
         "pretrained",
-        help="Download the packaged pretrained phytoplankton model into a project.",
+        help="Download a published pretrained model into a project models directory.",
     )
     pretrained_parser.add_argument("directory", nargs="?", default=".")
     pretrained_parser.add_argument("--config")
+    pretrained_parser.add_argument(
+        "--model",
+        choices=model_utils.PRETRAINED_MODEL_CHOICES,
+        default=PRETRAINED_MODEL_NAME,
+        help="Published pretrained model to download.",
+    )
+    pretrained_parser.add_argument(
+        "--version",
+        default="latest",
+        help="Published pretrained model version to download. Default: latest",
+    )
     pretrained_parser.add_argument(
         "--force",
         action="store_true",

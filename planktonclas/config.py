@@ -53,7 +53,10 @@ MODEL_PREPROCESS_MODES = {
     "ResNet50": "caffe",
     "VGG16": "caffe",
     "VGG19": "caffe",
-    "Phytoplankton_EfficientNetV2B0": "TF",
+    "Phytoplankton_EfficientNetV2B0": "tf",
+    "FlowCam": "tf",
+    "FlowCyto": "tf",
+    "PI10": "tf",
 }
 
 
@@ -75,6 +78,7 @@ def apply_internal_defaults(conf_d):
     Apply runtime-only defaults that should not be exposed in the user config.
     """
     model_conf = conf_d.setdefault("model", {})
+    pretrained_conf = conf_d.setdefault("pretrained", {})
     training_conf = conf_d.setdefault("training", {})
     general_conf = conf_d.setdefault("general", {})
     testing_conf = conf_d.setdefault("testing", {})
@@ -95,6 +99,9 @@ def apply_internal_defaults(conf_d):
             testing_conf[key] = normalize_user_path(testing_conf[key])
 
     model_conf.setdefault("num_classes", None)
+    pretrained_conf.setdefault("use_pretrained", False)
+    pretrained_conf.setdefault("name", None)
+    pretrained_conf.setdefault("version", "latest")
     training_conf.setdefault("lr_schedule_mode", "step")
     return conf_d
 

@@ -32,6 +32,7 @@ The runtime configuration is grouped in the active ``config.yaml`` under:
 
 * ``general``
 * ``model``
+* ``pretrained``
 * ``dataset``
 * ``training``
 * ``monitor``
@@ -47,9 +48,12 @@ Important conventions
 * outputs are organized by training timestamp under ``models/<timestamp>/``
 * training with test evaluation saves both prediction JSON files and a compact metrics JSON under ``models/<timestamp>/predictions/``
 * inference defaults to the latest available trained timestamp
-* new local training runs save ``best_model.keras`` when validation is enabled; otherwise they save ``final_model.keras``. The legacy pretrained ``Phytoplankton_EfficientNetV2B0`` model still uses ``final_model.h5``
+* published pretrained models are selected through ``pretrained.use_pretrained``, ``pretrained.name``, and ``pretrained.version``
+* ``model.modelname`` stays the base architecture choice, while the pretrained selection identifies the published instrument-specific weights to load
+* new local training runs save ``best_model.keras`` when validation is enabled; otherwise they save ``final_model.keras``. The published ``FlowCam`` pretrained model currently uses ``final_model.h5`` while ``FlowCyto`` and ``PI10`` are expected to use ``best_model.keras``
 * ``planktonclas report`` suggests the most recent timestamp when ``--timestamp`` is omitted and can prompt for another run by number
 * ``planktonclas report`` defaults to ``quick`` mode and only generates the subfolder threshold plots in ``full`` mode
+* ``planktonclas list-models`` shows published pretrained models with their architecture, version, and checkpoint metadata when the folder name matches a published model id
 
 Practical usage after a model is created
 ----------------------------------------

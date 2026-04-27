@@ -45,7 +45,7 @@ model:
       value: "EfficientNetV2B0"
       type: "str"
       choices: ["DenseNet121", "DenseNet169", "DenseNet201", "InceptionResNetV2", "InceptionV3", "MobileNet",
-               "NASNetMobile", "Xception", "ResNet50", "VGG16", "VGG19", "EfficientNetV2B0", "Phytoplankton_EfficientNetV2B0"]
+               "NASNetMobile", "Xception", "ResNet50", "VGG16", "VGG19", "EfficientNetV2B0"]
       help: >
             Model to train.
             A performance/size comparison can be found in: https://github.com/keras-team/keras-applications.
@@ -57,6 +57,28 @@ model:
     range: [32, 1000]
     help: >
           Image size to feed the model. If not provided, we will use the default image size of each model.
+
+pretrained:
+  use_pretrained:
+    value: False
+    type: "bool"
+    choices: [true, false]
+    help: >
+          Load a published pretrained model from the local models directory. If it is missing, planktonclas can
+          download it with `planktonclas pretrained my_project --model NAME`.
+
+  name:
+    value: "FlowCam"
+    type: "str"
+    choices: ["FlowCam", "FlowCyto", "PI10"]
+    help: >
+          Published pretrained model to use when `use_pretrained` is true.
+
+  version:
+    value: "latest"
+    type: "str"
+    help: >
+          Published pretrained model version to use. `latest` is currently the supported public option.
 
 
 #####################################################

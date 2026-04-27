@@ -48,11 +48,13 @@ Step 3: Validate the config
 Step 4: Optional pretrained model
 ---------------------------------
 
-If you want to start from the published pretrained model:
+If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project
+   planktonclas pretrained my_project --model FlowCam
+
+Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
 
 Step 5: Optional inference Docker image
 ---------------------------------------
@@ -117,6 +119,9 @@ The most important training parameters are:
 
 * ``images_directory``
 * ``modelname``
+* ``use_pretrained``
+* ``pretrained_name``
+* ``pretrained_version``
 * ``image_size``
 * ``batch_size``
 * ``epochs``

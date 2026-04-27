@@ -14,6 +14,8 @@ import os
 import logging
 import tarfile
 import tempfile
+import zipfile
+import shutil
 
 import numpy as np
 import requests
@@ -35,14 +37,49 @@ from tensorflow.python.saved_model.signature_def_utils import (
 
 from planktonclas import config, paths, utils
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
-PRETRAINED_MODEL_NAME = "Phytoplankton_EfficientNetV2B0"
-PRETRAINED_MODEL_TAR = f"{PRETRAINED_MODEL_NAME}.tar.gz"
-PRETRAINED_MODEL_URL = (
-    f"https://zenodo.org/records/15269453/files/{PRETRAINED_MODEL_TAR}?download=1"
-)
+LEGACY_PRETRAINED_MODEL_NAME = "Phytoplankton_EfficientNetV2B0"
+DEFAULT_PRETRAINED_MODEL = "FlowCam"
+PRETRAINED_MODELS = {
+    "FlowCam": {
+        "architecture": "EfficientNetV2B0",
+        "versions": {
+            "latest": {
+                "url": "https://zenodo.org/records/15269453/files/Phytoplankton_EfficientNetV2B0.tar.gz?download=1",
+                "archive_type": "tar.gz",
+                "source_dir_names": ["Phytoplankton_EfficientNetV2B0", "FlowCam"],
+                "checkpoint_name": "final_model.h5",
+            }
+        },
+    },
+    "FlowCyto": {
+        "architecture": "EfficientNetV2B0",
+        "versions": {
+            "latest": {
+                "url": "https://zenodo.org/records/19709957/files/FlowCytoClassifier.zip?download=1",
+                "archive_type": "zip",
+                "source_dir_names": ["FlowCytoClassifier", "FlowCyto"],
+                "checkpoint_name": "best_model.keras",
+            }
+        },
+    },
+    "PI10": {
+        "architecture": "EfficientNetV2B0",
+        "versions": {
+            "latest": {
+                "url": "https://zenodo.org/records/19663235/files/lifewatch/planktonclas-v1.0-PI10.zip?download=1",
+                "archive_type": "zip",
+                "source_dir_names": ["PI10", "planktonclas-v1.0-PI10"],
+                "checkpoint_name": "best_model.keras",
+            }
+        },
+    },
+}
+PRETRAINED_MODEL_CHOICES = list(PRETRAINED_MODELS.keys())
+PRETRAINED_MODEL_ALIASES = {
+    LEGACY_PRETRAINED_MODEL_NAME: DEFAULT_PRETRAINED_MODEL,
+}
 
 model_modes = {
     "DenseNet121": "torch",
@@ -58,7 +95,7 @@ model_modes = {
     "ResNet50": "caffe",
     "VGG16": "caffe",
     "VGG19": "caffe",
-    PRETRAINED_MODEL_NAME: "TF",
+    LEGACY_PRETRAINED_MODEL_NAME: "tf",
 }
 
 
@@ -80,33 +117,129 @@ def _safe_extract_tar(archive_path, destination):
                 dst.write(extracted.read())
 
 
-def ensure_pretrained_model(models_dir, modelname=PRETRAINED_MODEL_NAME, force=False):
+def _safe_extract_zip(archive_path, destination):
+    destination = os.path.abspath(destination)
+    with zipfile.ZipFile(archive_path, "r") as zip_handle:
+        for member in zip_handle.infolist():
+            member_path = os.path.abspath(os.path.join(destination, member.filename))
+            if os.path.commonpath([destination, member_path]) != destination:
+                raise ValueError(f"Unsafe path found in zip archive: {member.filename}")
+            if member.is_dir():
+                os.makedirs(member_path, exist_ok=True)
+                continue
+            os.makedirs(os.path.dirname(member_path), exist_ok=True)
+            with zip_handle.open(member, "r") as src, open(member_path, "wb") as dst:
+                dst.write(src.read())
+
+
+def _resolve_pretrained_key(name):
+    if not name:
+        return DEFAULT_PRETRAINED_MODEL
+    return PRETRAINED_MODEL_ALIASES.get(name, name)
+
+
+def _get_pretrained_spec(name, version="latest"):
+    resolved_name = _resolve_pretrained_key(name)
+    if resolved_name not in PRETRAINED_MODELS:
+        raise ValueError(
+            f"Unknown pretrained model: {name}. Available: {sorted(PRETRAINED_MODELS)}"
+        )
+    versions = PRETRAINED_MODELS[resolved_name]["versions"]
+    resolved_version = version or "latest"
+    if resolved_version not in versions:
+        raise ValueError(
+            f"Unknown version {resolved_version!r} for pretrained model {resolved_name}. "
+            f"Available: {sorted(versions)}"
+        )
+    return resolved_name, resolved_version, versions[resolved_version]
+
+
+def get_pretrained_metadata(name, version="latest"):
+    resolved_name, resolved_version, spec = _get_pretrained_spec(name, version)
+    model_entry = PRETRAINED_MODELS[resolved_name]
+    return {
+        "name": resolved_name,
+        "version": resolved_version,
+        "architecture": model_entry["architecture"],
+        "checkpoint_name": spec["checkpoint_name"],
+        "url": spec["url"],
+        "archive_type": spec["archive_type"],
+    }
+
+
+def _find_model_dir(extract_root, source_dir_names):
+    extract_root = os.path.abspath(extract_root)
+
+    for root, dirnames, _ in os.walk(extract_root):
+        if os.path.basename(root) == "models":
+            for source_dir_name in source_dir_names:
+                candidate = os.path.join(root, source_dir_name)
+                if os.path.isdir(candidate):
+                    return candidate
+        for source_dir_name in source_dir_names:
+            if source_dir_name in dirnames:
+                candidate = os.path.join(root, source_dir_name)
+                ckpt_dir = os.path.join(candidate, "ckpts")
+                if os.path.isdir(ckpt_dir):
+                    return candidate
+
+    candidates = []
+    for root, dirnames, _ in os.walk(extract_root):
+        for dirname in dirnames:
+            candidate = os.path.join(root, dirname)
+            ckpt_dir = os.path.join(candidate, "ckpts")
+            if os.path.isdir(ckpt_dir):
+                candidates.append(candidate)
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    raise FileNotFoundError(
+        "Could not locate a single model directory with a ckpts folder in the downloaded archive."
+    )
+
+
+def ensure_pretrained_model(models_dir, modelname=DEFAULT_PRETRAINED_MODEL, version="latest", force=False):
     """
-    Ensure the packaged pretrained model exists locally under the project models directory.
+    Ensure a published pretrained model exists locally under the project models directory.
     """
-    target_dir = os.path.join(models_dir, modelname)
+    resolved_name, resolved_version, spec = _get_pretrained_spec(modelname, version)
+    target_dir = os.path.join(models_dir, resolved_name)
     os.makedirs(models_dir, exist_ok=True)
 
     if os.path.isdir(target_dir) and not force:
         return target_dir
 
-    logger.info("Downloading pretrained model: %s", modelname)
-    logger.info("Source: %s", PRETRAINED_MODEL_URL)
+    logger.info("Downloading pretrained model: %s (%s)", resolved_name, resolved_version)
+    logger.info("Source: %s", spec["url"])
 
     temp_archive = None
+    extract_dir = None
     try:
-        with requests.get(PRETRAINED_MODEL_URL, stream=True, timeout=120) as response:
+        with requests.get(spec["url"], stream=True, timeout=120) as response:
             response.raise_for_status()
-            with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp_file:
+            suffix = ".zip" if spec["archive_type"] == "zip" else ".tar.gz"
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_file:
                 temp_archive = tmp_file.name
                 for chunk in response.iter_content(chunk_size=1024 * 1024):
                     if chunk:
                         tmp_file.write(chunk)
 
-        _safe_extract_tar(temp_archive, models_dir)
+        extract_dir = tempfile.mkdtemp(prefix="planktonclas-pretrained-")
+        if spec["archive_type"] == "zip":
+            _safe_extract_zip(temp_archive, extract_dir)
+        else:
+            _safe_extract_tar(temp_archive, extract_dir)
+
+        source_dir = _find_model_dir(extract_dir, spec["source_dir_names"])
+        if os.path.isdir(target_dir):
+            shutil.rmtree(target_dir)
+        shutil.copytree(source_dir, target_dir)
     finally:
         if temp_archive and os.path.exists(temp_archive):
             os.remove(temp_archive)
+        if extract_dir and os.path.exists(extract_dir):
+            shutil.rmtree(extract_dir, ignore_errors=True)
 
     if not os.path.isdir(target_dir):
         raise FileNotFoundError(
@@ -117,6 +250,19 @@ def ensure_pretrained_model(models_dir, modelname=PRETRAINED_MODEL_NAME, force=F
     return target_dir
 
 
+def resolve_pretrained_selection(conf):
+    pretrained_conf = conf.get("pretrained", {})
+    if pretrained_conf.get("use_pretrained"):
+        return _resolve_pretrained_key(pretrained_conf.get("name")), pretrained_conf.get("version", "latest")
+
+    modelname = conf.get("model", {}).get("modelname")
+    if modelname in PRETRAINED_MODEL_ALIASES:
+        return _resolve_pretrained_key(modelname), "latest"
+    if modelname in PRETRAINED_MODELS:
+        return modelname, "latest"
+    return None, None
+
+
 def create_model(CONF):
     """
     Parameters
@@ -125,16 +271,17 @@ def create_model(CONF):
         Contains relevant configuration parameters of the model
     """
     modelname = CONF["model"]["modelname"]
+    pretrained_name, pretrained_version = resolve_pretrained_selection(CONF)
 
-    # Check if a local pre-trained model exists
     models_dir = paths.get_models_dir()
-    if modelname == PRETRAINED_MODEL_NAME:
-        ensure_pretrained_model(models_dir)
-    local_model_path = os.path.join(models_dir, modelname)
+    local_model_name = pretrained_name or modelname
+    if pretrained_name:
+        ensure_pretrained_model(models_dir, modelname=pretrained_name, version=pretrained_version)
+    local_model_path = os.path.join(models_dir, local_model_name)
 
     # Try to load from local directory first
     if os.path.isdir(local_model_path):
-        logger.info("✓ Found locally trained model: %s", modelname)
+        logger.info("✓ Found local model directory: %s", local_model_name)
         # Look for inference checkpoint in the model directory
         ckpt_dir = os.path.join(local_model_path, "ckpts")
 
@@ -167,7 +314,10 @@ def create_model(CONF):
         return model, base_model
     
     # Fall back to tf.keras.applications if no local model found
-    architecture = getattr(applications, modelname)
+    architecture_name = modelname
+    if pretrained_name:
+        architecture_name = PRETRAINED_MODELS[pretrained_name]["architecture"]
+    architecture = getattr(applications, architecture_name)
 
     # create the base pre-trained model
     img_width, img_height = (

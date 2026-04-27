@@ -171,11 +171,15 @@ For a quick smoke test on the demo project:
 planktonclas train my_project --quick
 ```
 
-*OPTIONAL*: Download the published pretrained model into the project:
+*OPTIONAL*: Download a published pretrained model into the project:
 
 ```bash
-planktonclas pretrained my_project
+planktonclas pretrained my_project --model FlowCam
 ```
+
+Available published pretrained model names currently include `FlowCam`, `FlowCyto`, and `PI10`.
+Only the actual model directory is extracted into `my_project/models`, even when the downloaded archive contains a
+full exported project tree.
 
 *OPTIONAL*: Build an inference Docker image from your trained model run:
 
@@ -183,8 +187,9 @@ planktonclas pretrained my_project
 planktonclas docker my_project
 ```
 
-For the bundled legacy pretrained model `Phytoplankton_EfficientNetV2B0`, use the
-checkpoint `final_model.h5`. New training runs created by `planktonclas train`
+For the published `FlowCam` pretrained model, the packaged checkpoint is currently
+`final_model.h5`. The `FlowCyto` and `PI10` published models are expected to use
+`best_model.keras`. New training runs created by `planktonclas train`
 save `best_model.keras` when validation is enabled. If you train without validation,
 the run saves `final_model.keras` instead.
 
@@ -285,6 +290,9 @@ Most users only need to adjust a small number of fields:
 - `general.base_directory`
 - `general.images_directory`
 - `model.modelname`
+- `pretrained.use_pretrained`
+- `pretrained.name`
+- `pretrained.version`
 - `training.epochs`
 - `training.batch_size`
 - `training.use_validation`
@@ -307,6 +315,14 @@ The package installs a `planktonclas` command with these main subcommands:
 - `planktonclas pretrained [DIR]`
 - `planktonclas list-models [DIR]`
 - `planktonclas notebooks [DIR]`
+
+The `pretrained` command accepts a published model name and version, for example:
+
+```bash
+planktonclas pretrained my_project --model FlowCyto --version latest
+```
+
+The `list-models` command now shows published pretrained models with extra metadata such as architecture, version, and checkpoint name, while local timestamped runs still appear as plain folder names.
 
 Typical local workflow:
 

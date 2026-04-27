@@ -46,11 +46,19 @@ Step 2: Validate the config
 Step 3: Optional pretrained model
 ---------------------------------
 
-If you want to start from the published pretrained model:
+If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project
+   planktonclas pretrained my_project --model FlowCam
+
+Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
+
+You can also request another published model explicitly:
+
+.. code-block:: bash
+
+   planktonclas pretrained my_project --model FlowCyto --version latest
 
 Step 4: Train a model
 ---------------------
@@ -134,6 +142,8 @@ After the main quickstart pipeline, you can also use:
    planktonclas api my_project
    planktonclas notebooks my_project
    planktonclas list-models my_project
+
+For published pretrained models, ``planktonclas list-models my_project`` includes architecture, version, and checkpoint metadata in the printed output.
 
 If you keep the standard project layout created by ``planktonclas init``, these commands automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when your config file lives somewhere else.
 

@@ -49,11 +49,13 @@ Step 3: Validate the config
 Step 4: Optional pretrained model
 ---------------------------------
 
-If you want to start from the published pretrained model:
+If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project
+   planktonclas pretrained my_project --model FlowCam
+
+Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
 
 Step 5: Copy the notebooks into the project
 -------------------------------------------
@@ -120,7 +122,7 @@ For ``1.1-Image_transformation.ipynb``:
 * keep one or more reference images in ``data/data_transformation/reference_style/``
 * the transformed outputs are written to ``data/data_transformation/end/``
 
-For the model-based notebooks ``3.0-Computing_predictions.ipynb``, ``3.1-Prediction_statistics.ipynb``, and ``3.2-Saliency_maps.ipynb``, the most important variables are ``TIMESTAMP`` and ``MODEL_NAME`` near the top of the notebook. They are prefilled for the published pretrained model ``Phytoplankton_EfficientNetV2B0`` so the notebooks run immediately, but you should change them to your own training timestamp and checkpoint name when you want to inspect a newly trained model.
+For the model-based notebooks ``3.0-Computing_predictions.ipynb``, ``3.1-Prediction_statistics.ipynb``, and ``3.2-Saliency_maps.ipynb``, the most important variables are ``TIMESTAMP`` and ``MODEL_NAME`` near the top of the notebook. They are prefilled for the published ``FlowCam`` pretrained model so the notebooks run immediately, but you should change them to your own training timestamp and checkpoint name when you want to inspect a newly trained model.
 
 How to open them
 ----------------

@@ -60,11 +60,13 @@ This is the easiest way to catch path or configuration problems before training.
 Step 4: Optional pretrained model
 ---------------------------------
 
-If you want to start from the published pretrained model:
+If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project
+   planktonclas pretrained my_project --model FlowCam
+
+The published model id selects the instrument-specific weights, while ``model.modelname`` in ``config.yaml`` remains the architecture choice.
 
 Step 5: Train a model
 ---------------------
@@ -147,12 +149,14 @@ Useful command summary
    planktonclas init my_project
    planktonclas init my_project --demo
    planktonclas validate-config my_project
-   planktonclas pretrained my_project
+   planktonclas pretrained my_project --model FlowCyto
    planktonclas train my_project
    planktonclas train my_project --quick
    planktonclas report my_project
    planktonclas docker my_project
    planktonclas list-models my_project
+
+For published pretrained entries, ``planktonclas list-models my_project`` prints the model id together with architecture, version, and checkpoint metadata.
 
 Practical caution
 -----------------
