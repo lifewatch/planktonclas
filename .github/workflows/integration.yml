@@ -48,6 +48,9 @@ jobs:
       - name: Install package
         run: python -m pip install -e .
 
+      - name: Run path sanity checks
+        run: python tests/integration/path_sanity_check.py
+
       - name: Initialize demo project
         run: python -m planktonclas.cli init "$PROJECT_DIR" --demo
 

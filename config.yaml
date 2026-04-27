@@ -174,29 +174,12 @@ training:
           Whether to use or not test. If True you have to provide a `test.txt` file in the `splits` directory.
 
 
-  use_best_model:
-    value: True
-    type: "bool"
-    choices: [true, false]
-    help: >
-          Whether to save or not the best model during training. If True, the model with the best validation accuracy will be
-          saved in a `best_model.h5/keras` file in the timestamp folder.
-
   use_early_stopping:
     value: False
     type: "bool"
     choices: [true, false]
     help: >
           Whether to use or not early stopping. If True you have to provide a `val.txt` file in the `splits` directory.
-
-  use_multiprocessing:
-    value: False
-    type: "bool"
-    choices: [true, false]
-    help: >
-          Whether to use or not multiple workers to do preprocess data (ie. do data augmentation)
-          faster during training. Disable it if your computing resources are scarce. Sometimes
-          multiprocessing can give errors even with enough resources.
 
 #####################################################
 #  Options about monitoring your training
@@ -210,14 +193,6 @@ monitor:
     choices: [true, false]
     help: >
           Use tensorboard to visualize the relevant metrics during the training process.
-
-  use_remote:
-    value: False
-    type: "bool"
-    choices: [true, false]
-    help: >
-          Forward the logs through a defined port if executing in a remote machine.
-
 
 #####################################################
 #  Options about your dataset image augmentation

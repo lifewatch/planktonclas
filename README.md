@@ -94,7 +94,7 @@ pip install "planktonclas[notebooks]"
 Use:
 
 ```bash
-planktonclas train --config ./my_project/config.yaml
+planktonclas train my_project
 ```
 
 This is the best choice if you already know where your image folder is and want a direct local workflow.
@@ -104,7 +104,7 @@ This is the best choice if you already know where your image folder is and want 
 Use:
 
 ```bash
-planktonclas api --config ./my_project/config.yaml
+planktonclas api my_project
 ```
 
 Then open:
@@ -155,20 +155,20 @@ planktonclas init my_project --demo
 *OPTIONAL*: Validate the generated config:
 
 ```bash
-planktonclas validate-config --config ./my_project/config.yaml
+planktonclas validate-config my_project
 ```
 
 
 Local training:
 
 ```bash
-planktonclas train --config ./my_project/config.yaml
+planktonclas train my_project
 ```
 
 For a quick smoke test on the demo project:
 
 ```bash
-planktonclas train --config ./my_project/config.yaml --quick
+planktonclas train my_project --quick
 ```
 
 *OPTIONAL*: Download the published pretrained model into the project:
@@ -185,12 +185,13 @@ planktonclas docker my_project
 
 For the bundled legacy pretrained model `Phytoplankton_EfficientNetV2B0`, use the
 checkpoint `final_model.h5`. New training runs created by `planktonclas train`
-save their final exported model as `final_model.keras`.
+save `best_model.keras` when validation is enabled. If you train without validation,
+the run saves `final_model.keras` instead.
 
 Report generation after training:
 
 ```bash
-planktonclas report --config ./my_project/config.yaml
+planktonclas report my_project
 ```
 
 If you leave out `--timestamp`, `planktonclas report` suggests the most recent run, lists the available timestamps, and lets you choose another one by number.
@@ -213,7 +214,7 @@ planktonclas init my_project
 Local API:
 
 ```bash
-planktonclas api --config ./my_project/config.yaml
+planktonclas api my_project
 ```
 
 ### Option C: I want notebooks
@@ -298,13 +299,13 @@ The package installs a `planktonclas` command with these main subcommands:
 
 - `planktonclas init [DIR]`
 - `planktonclas init [DIR] --demo`
-- `planktonclas validate-config --config PATH`
-- `planktonclas train --config PATH`
-- `planktonclas report --config PATH [--timestamp TS]`
-- `planktonclas api --config PATH`
+- `planktonclas validate-config [DIR]`
+- `planktonclas train [DIR]`
+- `planktonclas report [DIR] [--timestamp TS]`
+- `planktonclas api [DIR]`
 - `planktonclas docker [DIR]`
 - `planktonclas pretrained [DIR]`
-- `planktonclas list-models --config PATH`
+- `planktonclas list-models [DIR]`
 - `planktonclas notebooks [DIR]`
 
 Typical local workflow:
@@ -312,18 +313,18 @@ Typical local workflow:
 ```bash
 planktonclas init my_project
 planktonclas notebooks my_project
-planktonclas validate-config --config ./my_project/config.yaml
-planktonclas train --config ./my_project/config.yaml
+planktonclas validate-config my_project
+planktonclas train my_project
 planktonclas docker my_project
-planktonclas report --config ./my_project/config.yaml
+planktonclas report my_project
 ```
 
 For a faster package smoke test with the demo data:
 
 ```bash
 planktonclas init my_project --demo
-planktonclas train --config ./my_project/config.yaml --quick
-planktonclas report --config ./my_project/config.yaml
+planktonclas train my_project --quick
+planktonclas report my_project
 ```
 
 ## API Workflow
@@ -332,7 +333,7 @@ Start the API with:
 
 ```bash
 planktonclas init my_project
-planktonclas api --config ./my_project/config.yaml
+planktonclas api my_project
 ```
 
 Then open:
@@ -423,8 +424,10 @@ planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_mo
 To generate performance plots after training:
 
 ```bash
-planktonclas report --config ./my_project/config.yaml
+planktonclas report my_project
 ```
+
+If you keep the standard project layout created by `planktonclas init`, these commands automatically use `my_project/config.yaml`. Use `--config PATH` only when your config file lives somewhere else.
 
 ## More Documentation
 

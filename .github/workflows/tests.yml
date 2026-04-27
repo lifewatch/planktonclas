@@ -1,4 +1,4 @@
-name: Tests
+name: Smoke Tests
 
 on:
   push:
@@ -34,4 +34,4 @@ jobs:
           python -m pip install pytest
 
       - name: Run smoke tests
-        run: python -m pytest tests -q
+        run: python -m pytest tests/smoke -q

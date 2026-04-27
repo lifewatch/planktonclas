@@ -8,15 +8,13 @@ import re
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 from datetime import datetime
 from importlib.resources import files
 
-import requests
 import yaml
 
-from planktonclas import config, paths
+from planktonclas import config, model_utils, paths
 
 
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,11 +29,7 @@ DEFAULT_NOTEBOOKS_DIR = _resource_path("resources", "notebooks")
 DEFAULT_DEMO_IMAGES_DIR = _resource_path("resources", "demo-images")
 DEFAULT_DEMO_SPLITS_DIR = _resource_path("resources", "dataset_files")
 DEFAULT_TRANSFORMATION_DATA_DIR = _resource_path("resources", "data_transformation")
-PRETRAINED_MODEL_NAME = "Phytoplankton_EfficientNetV2B0"
-PRETRAINED_MODEL_TAR = f"{PRETRAINED_MODEL_NAME}.tar.gz"
-PRETRAINED_MODEL_URL = (
-    f"https://zenodo.org/records/15269453/files/{PRETRAINED_MODEL_TAR}?download=1"
-)
+PRETRAINED_MODEL_NAME = model_utils.PRETRAINED_MODEL_NAME
 TRAINED_MODEL_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
 
 
@@ -101,24 +95,6 @@ def _resolve_project_dir(directory=None, conf_path=None):
     if directory is not None:
         return os.path.abspath(directory)
     return os.path.abspath(".")
-
-
-def _safe_extract_tar(archive_path, destination):
-    destination = os.path.abspath(destination)
-    with tarfile.open(archive_path, "r:gz") as tar:
-        for member in tar.getmembers():
-            member_path = os.path.abspath(os.path.join(destination, member.name))
-            if os.path.commonpath([destination, member_path]) != destination:
-                raise ValueError(f"Unsafe path found in tar archive: {member.name}")
-            if member.isdir():
-                os.makedirs(member_path, exist_ok=True)
-                continue
-            extracted = tar.extractfile(member)
-            if extracted is None:
-                continue
-            os.makedirs(os.path.dirname(member_path), exist_ok=True)
-            with extracted, open(member_path, "wb") as dst:
-                shutil.copyfileobj(extracted, dst)
 
 
 def _display_path(path):
@@ -512,34 +488,11 @@ def notebooks(args):
 def download_pretrained(args):
     project_dir = _resolve_project_dir(args.directory, args.config)
     models_dir = os.path.join(project_dir, "models")
-    target_dir = os.path.join(models_dir, PRETRAINED_MODEL_NAME)
-    _ensure_dir(models_dir)
-
-    if os.path.exists(target_dir) and not args.force:
-        raise FileExistsError(
-            f"{target_dir} already exists. Use --force to re-download the pretrained model."
-        )
-
-    print(f"Downloading pretrained model: {PRETRAINED_MODEL_NAME}")
-    print(f"Source: {PRETRAINED_MODEL_URL}")
-
-    temp_archive = None
-    try:
-        with requests.get(PRETRAINED_MODEL_URL, stream=True, timeout=120) as response:
-            response.raise_for_status()
-            with tempfile.NamedTemporaryFile(
-                suffix=".tar.gz", delete=False
-            ) as tmp_file:
-                temp_archive = tmp_file.name
-                for chunk in response.iter_content(chunk_size=1024 * 1024):
-                    if chunk:
-                        tmp_file.write(chunk)
-
-        _safe_extract_tar(temp_archive, models_dir)
-    finally:
-        if temp_archive and os.path.exists(temp_archive):
-            os.remove(temp_archive)
-
+    target_dir = model_utils.ensure_pretrained_model(
+        models_dir,
+        modelname=PRETRAINED_MODEL_NAME,
+        force=args.force,
+    )
     print(f"Pretrained model available at: {target_dir}")
 
 

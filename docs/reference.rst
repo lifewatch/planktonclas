@@ -47,7 +47,7 @@ Important conventions
 * outputs are organized by training timestamp under ``models/<timestamp>/``
 * training with test evaluation saves both prediction JSON files and a compact metrics JSON under ``models/<timestamp>/predictions/``
 * inference defaults to the latest available trained timestamp
-* new local training runs save their final exported model as ``final_model.keras``, while the legacy pretrained ``Phytoplankton_EfficientNetV2B0`` model still uses ``final_model.h5``
+* new local training runs save ``best_model.keras`` when validation is enabled; otherwise they save ``final_model.keras``. The legacy pretrained ``Phytoplankton_EfficientNetV2B0`` model still uses ``final_model.h5``
 * ``planktonclas report`` suggests the most recent timestamp when ``--timestamp`` is omitted and can prompt for another run by number
 * ``planktonclas report`` defaults to ``quick`` mode and only generates the subfolder threshold plots in ``full`` mode
 
@@ -110,7 +110,6 @@ Predict one image from Python
        top_K=5,
        filemode="local",
        merge=False,
-       use_multiprocessing=False,
    )
 
 Use a Dockerized inference server from Python

@@ -44,7 +44,7 @@ Step 3: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config --config ./my_project/config.yaml
+   planktonclas validate-config my_project
 
 Step 4: Optional pretrained model
 ---------------------------------
@@ -63,6 +63,8 @@ Step 5: Copy the notebooks into the project
    planktonclas notebooks my_project
 
 This creates ``my_project/notebooks/`` and copies the packaged notebooks there.
+
+With the standard project layout from ``planktonclas init``, commands such as ``planktonclas validate-config my_project`` and ``planktonclas train my_project`` automatically use ``my_project/config.yaml``.
 
 To refresh an existing project with updated packaged notebooks:
 

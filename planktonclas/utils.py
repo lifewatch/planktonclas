@@ -275,7 +275,6 @@ def launch_tensorboard(port, logdir, host="0.0.0.0"):  # nosec
 def get_callbacks(CONF, use_lr_decay=True):
     """
     Get a callback list to feed fit_generator.
-    #TODO Use_remote callback needs proper configuration
     #TODO Add ReduceLROnPlateau callback?
 
     Parameters
@@ -310,7 +309,7 @@ def get_callbacks(CONF, use_lr_decay=True):
                 epoch_milestones=milestones.tolist(),
             ))
 
-    if CONF["monitor"]["use_tensorboard"]:
+    if CONF["monitor"].get("use_tensorboard", False):
         calls.append(
             callbacks.TensorBoard(
                 log_dir=paths.get_logs_dir(),
@@ -347,9 +346,6 @@ def get_callbacks(CONF, use_lr_decay=True):
 
 
 
-    if CONF["monitor"]["use_remote"]:
-        calls.append(callbacks.RemoteMonitor())
-
     if (CONF["training"]["use_validation"]
             and CONF["training"]["use_early_stopping"]):
         calls.append(
@@ -371,7 +367,7 @@ def get_callbacks(CONF, use_lr_decay=True):
                 ),
             ))
 
-    if CONF["training"].get("use_best_model", True) and CONF["training"]["use_validation"]:
+    if CONF["training"]["use_validation"]:
         best_model_path = os.path.join(paths.get_checkpoints_dir(), "best_model.keras")
         best_model_display_path = display_path(best_model_path)
 

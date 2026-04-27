@@ -22,7 +22,6 @@ def predict(
     crop_num=10,
     filemode="local",
     merge=False,
-    use_multiprocessing=False,
 ):
     """
     Predict function.
@@ -45,9 +44,6 @@ def predict(
         - 'url': filename is internet url.
     merge: Merge the predictions of all the images in the list. This value is tipically set to True when you pass
         multiple images of the same observation.
-    use_multiprocessing: bool
-       Use multiprocessing with the Keras generator.
-
     Returns
     -------
         pred_lab: np.array, shape (N, top_k)

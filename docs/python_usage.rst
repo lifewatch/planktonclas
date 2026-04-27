@@ -53,7 +53,7 @@ Step 3: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config --config ./my_project/config.yaml
+   planktonclas validate-config my_project
 
 This is the easiest way to catch path or configuration problems before training.
 
@@ -71,13 +71,13 @@ Step 5: Train a model
 
 .. code-block:: bash
 
-   planktonclas train --config ./my_project/config.yaml
+   planktonclas train my_project
 
 For a quick smoke test on a demo project:
 
 .. code-block:: bash
 
-   planktonclas train --config ./my_project/config.yaml --quick
+   planktonclas train my_project --quick
 
 This creates a new timestamped output directory under ``my_project/models/``.
 
@@ -86,7 +86,7 @@ Step 6: Generate a report
 
 .. code-block:: bash
 
-   planktonclas report --config ./my_project/config.yaml
+   planktonclas report my_project
 
 What the report step creates
 ----------------------------
@@ -135,9 +135,9 @@ You can:
 * inspect saved predictions under ``models/<timestamp>/predictions/``
 * inspect reports under ``models/<timestamp>/results/``
 * package a run into Docker with ``planktonclas docker my_project``
-* start the API with ``planktonclas api --config ./my_project/config.yaml``
+* start the API with ``planktonclas api my_project``
 * copy notebooks with ``planktonclas notebooks my_project``
-* list available trained runs with ``planktonclas list-models --config ./my_project/config.yaml``
+* list available trained runs with ``planktonclas list-models my_project``
 
 Useful command summary
 ----------------------
@@ -146,15 +146,17 @@ Useful command summary
 
    planktonclas init my_project
    planktonclas init my_project --demo
-   planktonclas validate-config --config ./my_project/config.yaml
+   planktonclas validate-config my_project
    planktonclas pretrained my_project
-   planktonclas train --config ./my_project/config.yaml
-   planktonclas train --config ./my_project/config.yaml --quick
-   planktonclas report --config ./my_project/config.yaml
+   planktonclas train my_project
+   planktonclas train my_project --quick
+   planktonclas report my_project
    planktonclas docker my_project
-   planktonclas list-models --config ./my_project/config.yaml
+   planktonclas list-models my_project
 
 Practical caution
 -----------------
 
 For most users, it is best to keep the standard project layout created by ``planktonclas init`` unless you deliberately want to override paths in ``config.yaml``.
+
+In that standard layout, commands such as ``planktonclas validate-config my_project`` and ``planktonclas train my_project`` automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when you want to point to a different config file.

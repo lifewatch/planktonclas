@@ -97,14 +97,19 @@ def prediction_display_path(path):
 
 def get_preferred_testing_checkpoint(conf):
     """Return the checkpoint that should be used for testing/inference outputs."""
-    use_best_model = conf["training"].get("use_best_model", True)
     use_validation = conf["training"]["use_validation"]
     best_model_name = "best_model.keras"
     best_model_path = os.path.join(paths.get_checkpoints_dir(), best_model_name)
 
-    if use_best_model and use_validation and os.path.exists(best_model_path):
+    if use_validation and os.path.exists(best_model_path):
         return best_model_name
     return "final_model.keras"
+
+
+def should_save_final_model(conf):
+    """Return whether a final-model export should be written after training."""
+    use_validation = conf["training"]["use_validation"]
+    return not use_validation
 
 
 def _safe_metric(metric_fn, true_lab, pred_top1, labels, average):
@@ -340,15 +345,20 @@ def train_fn(TIMESTAMP, CONF):
     with open(os.path.join(stats_dir, "stats.json"), "w") as outfile:
         json.dump(stats, outfile, sort_keys=True, indent=4)
 
-    log_step("Saving final model")
-    fpath = os.path.join(paths.get_checkpoints_dir(), "final_model.keras")
+    if should_save_final_model(CONF):
+        log_step("Saving final model")
+        fpath = os.path.join(paths.get_checkpoints_dir(), "final_model.keras")
 
-    stderr_backup = sys.stderr
-    sys.stderr = io.StringIO()
-    try:
-        model.save(fpath, include_optimizer=False)
-    finally:
-        sys.stderr = stderr_backup
+        stderr_backup = sys.stderr
+        sys.stderr = io.StringIO()
+        try:
+            model.save(fpath, include_optimizer=False)
+        finally:
+            sys.stderr = stderr_backup
+    else:
+        log_step(
+            "Skipping final model export because validation is enabled and best_model.keras is used."
+        )
 
     preferred_ckpt_name = get_preferred_testing_checkpoint(CONF)
     CONF["testing"]["timestamp"] = TIMESTAMP
@@ -400,9 +410,6 @@ def train_fn(TIMESTAMP, CONF):
             output = model.predict(
                 test_gen,
                 verbose=1,
-                # max_queue_size=10,
-                # workers=16,
-                # use_multiprocessing=CONF["training"]["use_multiprocessing"],
             )
 
         output = output.reshape(len(X_test), -1, output.shape[-1])

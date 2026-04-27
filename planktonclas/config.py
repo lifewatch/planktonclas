@@ -11,6 +11,8 @@ Github: ai4os-hub / phyto-plankton-classification
 
 import builtins
 import os
+import ntpath
+import posixpath
 import textwrap
 
 import yaml
@@ -55,12 +57,27 @@ MODEL_PREPROCESS_MODES = {
 }
 
 
+def normalize_user_path(path, path_separator=None):
+    """
+    Normalize user-provided path separators so either slash style is accepted.
+    """
+    if path is None or not isinstance(path, str):
+        return path
+
+    separator = os.sep if path_separator is None else path_separator
+    normalized = path.replace("\\", separator).replace("/", separator)
+    path_module = ntpath if separator == "\\" else posixpath
+    return path_module.normpath(normalized)
+
+
 def apply_internal_defaults(conf_d):
     """
     Apply runtime-only defaults that should not be exposed in the user config.
     """
     model_conf = conf_d.setdefault("model", {})
     training_conf = conf_d.setdefault("training", {})
+    general_conf = conf_d.setdefault("general", {})
+    testing_conf = conf_d.setdefault("testing", {})
 
     modelname = model_conf.get("modelname")
     if "preprocess_mode" not in model_conf:
@@ -68,6 +85,14 @@ def apply_internal_defaults(conf_d):
             model_conf["preprocess_mode"] = MODEL_PREPROCESS_MODES.get(modelname, "tf")
         else:
             model_conf["preprocess_mode"] = "tf"
+
+    for key in ("base_directory", "images_directory"):
+        if key in general_conf:
+            general_conf[key] = normalize_user_path(general_conf[key])
+
+    for key in ("output_directory", "file_location"):
+        if key in testing_conf:
+            testing_conf[key] = normalize_user_path(testing_conf[key])
 
     model_conf.setdefault("num_classes", None)
     training_conf.setdefault("lr_schedule_mode", "step")
@@ -154,7 +179,7 @@ def _load_conf_file(conf_path):
 
 def _get_resolution_root(conf_path):
     if os.path.abspath(conf_path) == os.path.abspath(DEFAULT_CONFIG_PATH):
-        return homedir
+        return os.getcwd()
     return os.path.dirname(os.path.abspath(conf_path))
 
 

@@ -14,12 +14,19 @@ from datetime import datetime
 
 from planktonclas import config
 
-CONF = config.get_conf_dict()
+CONF = None
 timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
 
+def _get_conf():
+    if CONF is not None:
+        return CONF
+    return config.get_conf_dict()
+
+
 def get_base_dir():
-    base_dir = CONF["general"]["base_directory"]
+    conf = _get_conf()
+    base_dir = conf["general"]["base_directory"]
     if os.path.isabs(base_dir):
         return base_dir
     else:
@@ -27,7 +34,8 @@ def get_base_dir():
 
 
 def get_images_dir():
-    img_dir = CONF["general"]["images_directory"]
+    conf = _get_conf()
+    img_dir = conf["general"]["images_directory"]
     if os.path.isabs(img_dir):
         return img_dir
     else:
@@ -67,8 +75,9 @@ def get_ts_splits_dir():
 
 
 def get_predictions_dir():
-    file_location = CONF.get("testing", {}).get("file_location", None)
-    output_directory = CONF["testing"]["output_directory"]
+    conf = _get_conf()
+    file_location = conf.get("testing", {}).get("file_location", None)
+    output_directory = conf["testing"]["output_directory"]
     # if file_location is None:
     #     if output_directory is None:
     #         # Define your get_timestamped_dir() function accordingly

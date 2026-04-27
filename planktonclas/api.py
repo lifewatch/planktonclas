@@ -288,12 +288,12 @@ def load_inference_model(timestamp=None, ckpt_name=None):
     best_model_name = "best_model.keras"
     best_model_path = os.path.join(paths.get_checkpoints_dir(), best_model_name)
     if (
-        conf.get("training", {}).get("use_best_model", False)
+        conf.get("training", {}).get("use_validation", False)
         and ckpt_name in {"final_model.h5", "final_model.keras"}
         and os.path.exists(best_model_path)
     ):
         logger.info(
-            "Switching inference checkpoint from %s to %s because training.use_best_model=true.",
+            "Switching inference checkpoint from %s to %s because validation-trained runs prefer the best checkpoint.",
             ckpt_name,
             best_model_name,
         )
@@ -563,7 +563,6 @@ def predict_data(args):
             top_K=top_K,
             filemode="local",
             merge=merge,
-            use_multiprocessing=False,
         )
 
         if merge:
@@ -667,7 +666,7 @@ def get_directory_choices(base_path="/srv/data/"):
 def resolve_directory(path):
     """Resolve a user-provided directory using the active config root."""
     if isinstance(path, str):
-        path = path.strip("'\"")
+        path = config.normalize_user_path(path.strip("'\""))
         candidate = Path(path)
     else:
         candidate = Path(path)

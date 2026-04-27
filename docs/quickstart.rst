@@ -41,7 +41,7 @@ Step 2: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config --config ./my_project/config.yaml
+   planktonclas validate-config my_project
 
 Step 3: Optional pretrained model
 ---------------------------------
@@ -57,13 +57,13 @@ Step 4: Train a model
 
 .. code-block:: bash
 
-   planktonclas train --config ./my_project/config.yaml
+   planktonclas train my_project
 
 For a quick smoke test on a demo project:
 
 .. code-block:: bash
 
-   planktonclas train --config ./my_project/config.yaml --quick
+   planktonclas train my_project --quick
 
 Step 5: Generate a report
 -------------------------
@@ -72,7 +72,7 @@ Before packaging a model run into Docker, it is usually best to inspect the repo
 
 .. code-block:: bash
 
-   planktonclas report --config ./my_project/config.yaml
+   planktonclas report my_project
 
 If you leave out ``--timestamp``, ``planktonclas report`` suggests the newest run automatically.
 
@@ -131,9 +131,11 @@ After the main quickstart pipeline, you can also use:
 
 .. code-block:: bash
 
-   planktonclas api --config ./my_project/config.yaml
+   planktonclas api my_project
    planktonclas notebooks my_project
-   planktonclas list-models --config ./my_project/config.yaml
+   planktonclas list-models my_project
+
+If you keep the standard project layout created by ``planktonclas init``, these commands automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when your config file lives somewhere else.
 
 Next step
 ---------

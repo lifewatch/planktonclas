@@ -43,7 +43,7 @@ Step 3: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config --config ./my_project/config.yaml
+   planktonclas validate-config my_project
 
 Step 4: Optional pretrained model
 ---------------------------------
@@ -85,7 +85,7 @@ The simplest way to start the API is:
 
 .. code-block:: bash
 
-   planktonclas api --config ./my_project/config.yaml
+   planktonclas api my_project
 
 Then open:
 
@@ -107,7 +107,7 @@ Step 7: Train through the API
 
 Typical browser flow:
 
-1. start ``planktonclas api --config ./my_project/config.yaml``
+1. start ``planktonclas api my_project``
 2. open ``/ui`` or ``/api#/``
 3. find the ``TRAIN`` operation
 4. edit the parameters you want
@@ -122,13 +122,12 @@ The most important training parameters are:
 * ``epochs``
 * ``use_validation``
 * ``use_test``
-* ``use_best_model``
-
 Important limitation:
 
 * ``images_directory`` is a path field, not a browser folder picker
 * the API cannot open a server-side folder chooser through Swagger UI
 * for local use, it is usually better to set the path in ``config.yaml`` before starting the API
+* with the standard project layout from ``planktonclas init``, ``planktonclas api my_project`` automatically uses ``my_project/config.yaml``
 
 Step 8: Run prediction through the API
 --------------------------------------
