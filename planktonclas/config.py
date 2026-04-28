@@ -13,6 +13,7 @@ import builtins
 import os
 import ntpath
 import posixpath
+import re
 import textwrap
 
 import yaml
@@ -179,9 +180,62 @@ def check_conf(conf=None):
                 format("rot_lim", d_name))
 
 
+_DOUBLE_QUOTED_BACKSLASH_PATTERN = re.compile(r'"([^"\\]*(?:\\.[^"\\]*)*)"')
+_VALID_YAML_ESCAPES = set("0abtnvfreN_LPuxU\"\\/")
+
+
+def _escape_invalid_yaml_backslashes(raw_text):
+    """
+    Preserve Windows-style backslashes inside double-quoted YAML scalars.
+    """
+
+    def _normalize_scalar(match):
+        scalar = match.group(1)
+        chunks = []
+        index = 0
+        while index < len(scalar):
+            char = scalar[index]
+            if char != "\\":
+                chunks.append(char)
+                index += 1
+                continue
+
+            next_index = index + 1
+            if next_index >= len(scalar):
+                chunks.append("\\\\")
+                index += 1
+                continue
+
+            next_char = scalar[next_index]
+            if next_char in _VALID_YAML_ESCAPES:
+                chunks.append("\\")
+                chunks.append(next_char)
+            else:
+                chunks.append("\\\\")
+                chunks.append(next_char)
+            index += 2
+
+        return f'"{"".join(chunks)}"'
+
+    return _DOUBLE_QUOTED_BACKSLASH_PATTERN.sub(_normalize_scalar, raw_text)
+
+
+def load_yaml_config(stream_or_text):
+    """
+    Load YAML while tolerating Windows backslashes in double-quoted strings.
+    """
+    raw_text = stream_or_text.read() if hasattr(stream_or_text, "read") else stream_or_text
+    try:
+        return yaml.safe_load(raw_text)
+    except yaml.scanner.ScannerError as exc:
+        if "found unknown escape character" not in str(exc):
+            raise
+        return yaml.safe_load(_escape_invalid_yaml_backslashes(raw_text))
+
+
 def _load_conf_file(conf_path):
-    with open(conf_path, "r") as f:
-        return yaml.safe_load(f)
+    with open(conf_path, "r", encoding="utf-8") as f:
+        return load_yaml_config(f)
 
 
 def _get_resolution_root(conf_path):

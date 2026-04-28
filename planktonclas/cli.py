@@ -172,7 +172,7 @@ def _resolve_checkpoint_name(run_dir, explicit_ckpt=None):
 
 def _load_yaml(path):
     with open(path, "r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+        return config.load_yaml_config(handle)
 
 
 def _dump_yaml(path, data):
