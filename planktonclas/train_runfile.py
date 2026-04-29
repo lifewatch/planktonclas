@@ -289,7 +289,14 @@ def train_fn(TIMESTAMP, CONF):
     t0 = time.time()
 
     log_section("Building model")
-    model, base_model = model_utils.create_model(CONF)
+    model, base_model, model_info = model_utils.create_model(CONF)
+
+    if model_info.get("source") == "resume":
+        log_step(
+            "Continuing from previous run: %s (%s)",
+            model_info["timestamp"],
+            model_info["checkpoint_name"],
+        )
 
     base_vars = [var.name for var in base_model.trainable_variables]
     all_vars = [var.name for var in model.trainable_variables]

@@ -50,6 +50,33 @@ def test_cli_train_accepts_project_directory(tmp_path, monkeypatch):
     assert captured["conf"]["training"]["epochs"] == 1
 
 
+def test_cli_retrain_uses_selected_previous_run(tmp_path, monkeypatch, capsys):
+    project_dir = tmp_path / "my_project"
+    cli.main(["init", str(project_dir)])
+    ckpt_dir = project_dir / "models" / "2026-04-29_115747" / "ckpts"
+    ckpt_dir.mkdir(parents=True)
+    (ckpt_dir / "best_model.keras").write_text("", encoding="utf-8")
+
+    captured = {}
+    fake_module = ModuleType("planktonclas.train_runfile")
+
+    def fake_train_fn(TIMESTAMP, CONF):
+        captured["timestamp"] = TIMESTAMP
+        captured["conf"] = CONF
+
+    fake_module.train_fn = fake_train_fn
+    monkeypatch.setitem(sys.modules, "planktonclas.train_runfile", fake_module)
+
+    cli.main(["retrain", str(project_dir), "2026-04-29_115747", "--workers", "2"])
+
+    output = capsys.readouterr().out
+    assert "Continuing training from: 2026-04-29_115747" in output
+    assert "Checkpoint: best_model.keras" in output
+    assert captured["conf"]["dataset"]["num_workers"] == 2
+    assert captured["conf"]["training"]["resume_from_timestamp"] == "2026-04-29_115747"
+    assert captured["conf"]["training"]["resume_from_ckpt_name"] == "best_model.keras"
+
+
 def test_cli_pretrained_uses_shared_pretrained_helper(tmp_path, monkeypatch, capsys):
     project_dir = tmp_path / "my_project"
     project_dir.mkdir()

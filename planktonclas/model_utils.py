@@ -263,6 +263,66 @@ def resolve_pretrained_selection(conf):
     return None, None
 
 
+def resolve_resume_selection(conf):
+    training_conf = conf.get("training", {})
+    resume_timestamp = training_conf.get("resume_from_timestamp")
+    resume_ckpt_name = training_conf.get("resume_from_ckpt_name")
+    if resume_timestamp:
+        return resume_timestamp, resume_ckpt_name
+    return None, None
+
+
+def _find_nested_base_model(model):
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.Model) and layer is not model:
+            return layer
+    return model
+
+
+def _load_resume_model(models_dir, timestamp, ckpt_name=None):
+    run_dir = os.path.join(models_dir, timestamp)
+    if not os.path.isdir(run_dir):
+        raise FileNotFoundError(f"Model run not found: {run_dir}")
+
+    ckpt_dir = os.path.join(run_dir, "ckpts")
+    if not os.path.isdir(ckpt_dir):
+        raise FileNotFoundError(f"No checkpoints directory found: {ckpt_dir}")
+
+    available = sorted(
+        name for name in os.listdir(ckpt_dir) if name.endswith((".keras", ".h5"))
+    )
+    if not available:
+        raise FileNotFoundError(f"No supported checkpoints found in: {ckpt_dir}")
+
+    selected_ckpt = ckpt_name
+    if selected_ckpt:
+        if selected_ckpt not in available:
+            raise FileNotFoundError(
+                f"Checkpoint {selected_ckpt} not found in {ckpt_dir}. Available: {available}"
+            )
+    else:
+        for preferred in ("best_model.keras", "final_model.keras", "final_model.h5"):
+            if preferred in available:
+                selected_ckpt = preferred
+                break
+        if selected_ckpt is None:
+            selected_ckpt = available[-1]
+
+    model_path = os.path.join(ckpt_dir, selected_ckpt)
+    logger.info("▌ Resuming training from checkpoint: %s/%s", timestamp, selected_ckpt)
+    model = load_model(
+        model_path,
+        custom_objects=utils.get_custom_objects(),
+        compile=False,
+    )
+    base_model = _find_nested_base_model(model)
+    return model, base_model, {
+        "source": "resume",
+        "timestamp": timestamp,
+        "checkpoint_name": selected_ckpt,
+    }
+
+
 def create_model(CONF):
     """
     Parameters
@@ -272,8 +332,28 @@ def create_model(CONF):
     """
     modelname = CONF["model"]["modelname"]
     pretrained_name, pretrained_version = resolve_pretrained_selection(CONF)
+    resume_timestamp, resume_ckpt_name = resolve_resume_selection(CONF)
 
     models_dir = paths.get_models_dir()
+    if resume_timestamp:
+        model, base_model, model_info = _load_resume_model(
+            models_dir,
+            timestamp=resume_timestamp,
+            ckpt_name=resume_ckpt_name,
+        )
+
+        output_shape = model.output_shape
+        if isinstance(output_shape, list):
+            output_shape = output_shape[0]
+        output_units = output_shape[-1]
+        expected_units = CONF["model"]["num_classes"]
+        if expected_units is not None and output_units != expected_units:
+            raise ValueError(
+                "Resume checkpoint output size does not match the active dataset. "
+                f"Checkpoint classes: {output_units}, config classes: {expected_units}."
+            )
+        return model, base_model, model_info
+
     local_model_name = pretrained_name or modelname
     if pretrained_name:
         ensure_pretrained_model(models_dir, modelname=pretrained_name, version=pretrained_version)
@@ -310,8 +390,12 @@ def create_model(CONF):
             for layer in model.layers:
                 layer.kernel_regularizer = regularizers.l2(
                     CONF["training"]["l2_reg"])
-        
-        return model, base_model
+
+        return model, base_model, {
+            "source": "local_model_dir",
+            "model_name": local_model_name,
+            "checkpoint_name": os.path.basename(model_file),
+        }
     
     # Fall back to tf.keras.applications if no local model found
     architecture_name = modelname
@@ -347,7 +431,10 @@ def create_model(CONF):
             layer.kernel_regularizer = regularizers.l2(
                 CONF["training"]["l2_reg"])
 
-    return model, base_model
+    return model, base_model, {
+        "source": "keras_applications",
+        "model_name": architecture_name,
+    }
 
 
 

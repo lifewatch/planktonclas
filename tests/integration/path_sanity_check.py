@@ -4,6 +4,10 @@ from tempfile import TemporaryDirectory
 from planktonclas import config, paths
 
 
+def _normalized_path(path):
+    return Path(path).resolve().as_posix().lower()
+
+
 def main():
     original_conf_path = config.CONF_PATH
     original_paths_conf = paths.CONF
@@ -19,15 +23,49 @@ def main():
                 config.set_config_path(config.DEFAULT_CONFIG_PATH)
                 paths.CONF = None
 
-                assert config.CONFIG_ROOT == str(tmp_path)
-                assert paths.get_base_dir() == str(tmp_path)
-                assert paths.get_images_dir() == str(tmp_path / "data" / "images")
+                assert _normalized_path(config.CONFIG_ROOT) == _normalized_path(tmp_path)
+                assert _normalized_path(paths.get_base_dir()) == _normalized_path(tmp_path)
+                assert _normalized_path(paths.get_images_dir()) == _normalized_path(tmp_path / "data" / "images")
             finally:
                 os.chdir(previous_cwd)
 
         assert config.normalize_user_path(r".\data/images", path_separator="/") == "data/images"
         assert config.normalize_user_path("./data\\images", path_separator="/") == "data/images"
         assert config.normalize_user_path("./data/images", path_separator="\\") == r"data\images"
+
+        raw_conf = """
+general:
+  base_directory:
+    value: "."
+  images_directory:
+    value: "\\\\qarchive\\data_sensors\\plankton-imager-10\\not_processed"
+testing:
+  output_directory:
+    value: null
+augmentation:
+  use_augmentation:
+    value: false
+"""
+        conf = config.load_yaml_config(raw_conf)
+        conf_dict = config.get_conf_dict(conf)
+        assert conf_dict["general"]["images_directory"] == r"\\qarchive\data_sensors\plankton-imager-10\not_processed"
+
+        raw_conf_forward = """
+general:
+  base_directory:
+    value: "."
+  images_directory:
+    value: "//qarchive/data_sensors/plankton-imager-10/not_processed"
+testing:
+  output_directory:
+    value: null
+augmentation:
+  use_augmentation:
+    value: false
+"""
+        conf_forward = config.load_yaml_config(raw_conf_forward)
+        conf_forward_dict = config.get_conf_dict(conf_forward)
+        assert conf_forward_dict["general"]["images_directory"] == r"\\qarchive\data_sensors\plankton-imager-10\not_processed"
     finally:
         config.set_config_path(original_conf_path)
         paths.CONF = original_paths_conf

@@ -319,6 +319,46 @@ def _choose_report_mode(explicit_mode=None):
         print("Please enter 1, 2, quick, full, or press Enter.")
 
 
+def _choose_retrain_timestamp(explicit_timestamp=None):
+    if explicit_timestamp:
+        return explicit_timestamp
+
+    timestamps = _list_model_timestamps()
+    suggested = timestamps[-1]
+
+    if len(timestamps) == 1:
+        print(f"Only one previous model run found. Using: {suggested}")
+        return suggested
+
+    print("Available model runs to continue from:")
+    for idx, timestamp in enumerate(timestamps, start=1):
+        marker = " (suggested)" if timestamp == suggested else ""
+        print(f"  {idx}. {timestamp}{marker}")
+
+    print(f"Suggested most recent run: {suggested}")
+    print("Press Enter to use the suggested run, or type a number from the list.")
+
+    while True:
+        selection = input("Retrain model selection: ").strip()
+        if not selection:
+            return suggested
+        if selection.isdigit():
+            choice = int(selection)
+            if 1 <= choice <= len(timestamps):
+                return timestamps[choice - 1]
+        print(f"Please enter a number between 1 and {len(timestamps)}, or press Enter.")
+
+
+def _resolve_retrain_target(config_arg=None, target_or_source=None, source=None):
+    if source:
+        return _resolve_config_argument(config_arg, target_or_source), source
+
+    if target_or_source and not os.path.exists(target_or_source):
+        return _resolve_config_argument(config_arg, None), target_or_source
+
+    return _resolve_config_argument(config_arg, target_or_source), None
+
+
 def init_project(args):
     target_dir = os.path.abspath(args.directory)
     config_path = os.path.join(target_dir, DEFAULT_PROJECT_CONFIG_NAME)
@@ -393,6 +433,42 @@ def train_model(args):
     if args.quick:
         conf["training"]["mode"] = "fast"
         conf["training"]["epochs"] = 1
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    train_fn(TIMESTAMP=timestamp, CONF=conf)
+
+
+def retrain_model(args):
+    conf_path, explicit_source = _resolve_retrain_target(
+        config_arg=args.config,
+        target_or_source=getattr(args, "target_or_source", None),
+        source=getattr(args, "source", None),
+    )
+    _apply_config(conf_path)
+
+    from planktonclas.train_runfile import train_fn
+
+    conf = config.get_conf_dict()
+    conf["dataset"]["num_workers"] = args.workers
+    if args.mode:
+        conf["training"]["mode"] = args.mode
+    if args.epochs is not None:
+        conf["training"]["epochs"] = args.epochs
+    if args.quick:
+        conf["training"]["mode"] = "fast"
+        conf["training"]["epochs"] = 1
+
+    models_dir = paths.get_models_dir()
+    selected_timestamp = _choose_retrain_timestamp(explicit_source)
+    selected_timestamp = _resolve_model_timestamp(models_dir, selected_timestamp)
+    run_dir = os.path.join(models_dir, selected_timestamp)
+    selected_ckpt = _resolve_checkpoint_name(run_dir, args.ckpt_name)
+
+    conf["training"]["resume_from_timestamp"] = selected_timestamp
+    conf["training"]["resume_from_ckpt_name"] = selected_ckpt
+
+    print(f"Continuing training from: {selected_timestamp}")
+    print(f"Checkpoint: {selected_ckpt}")
+
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     train_fn(TIMESTAMP=timestamp, CONF=conf)
 
@@ -572,6 +648,48 @@ def build_parser():
         help="Quick smoke-test run: uses fast mode and 1 epoch.",
     )
     train_parser.set_defaults(func=train_model)
+
+    retrain_parser = subparsers.add_parser(
+        "retrain",
+        help="Continue training from a previous local model run.",
+    )
+    retrain_parser.add_argument(
+        "target_or_source",
+        nargs="?",
+        help="Optional project directory/config path, or a previous model timestamp when run from a project root.",
+    )
+    retrain_parser.add_argument(
+        "source",
+        nargs="?",
+        help="Optional previous model timestamp to continue from.",
+    )
+    retrain_parser.add_argument("--config")
+    retrain_parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of dataset preprocessing workers.",
+    )
+    retrain_parser.add_argument(
+        "--mode",
+        choices=["normal", "fast"],
+        help="Override the training mode from the config file.",
+    )
+    retrain_parser.add_argument(
+        "--epochs",
+        type=int,
+        help="Override the number of training epochs from the config file.",
+    )
+    retrain_parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Quick smoke-test run: uses fast mode and 1 epoch.",
+    )
+    retrain_parser.add_argument(
+        "--ckpt-name",
+        help="Checkpoint name inside the selected previous run. Defaults to best_model.keras, then final_model.keras, then final_model.h5.",
+    )
+    retrain_parser.set_defaults(func=retrain_model)
 
     report_parser = subparsers.add_parser(
         "report",

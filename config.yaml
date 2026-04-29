@@ -167,6 +167,63 @@ training:
           List of the fraction of the total time at which apply a decay. For example [0.7, 0.9] means that the lr
           will be decay at 70% and 90% of total number of epochs.
 
+  lr_schedule_mode:
+    value: "plateau"
+    type: "str"
+    choices: ["step", "plateau", "none"]
+    help: >
+          Learning-rate scheduler to use during training. `step` uses the fixed milestone schedule above,
+          `plateau` uses ReduceLROnPlateau, and `none` disables learning-rate decay callbacks.
+
+  lr_plateau_monitor:
+    value: "val_loss"
+    type: "str"
+    help: >
+          Metric monitored by ReduceLROnPlateau. If a validation metric is selected but validation is disabled,
+          training falls back to monitoring `loss`.
+
+  lr_plateau_factor:
+    value: 0.1
+    type: "float"
+    range: [0, 1]
+    help: >
+          Factor by which the learning rate is reduced when using ReduceLROnPlateau.
+
+  lr_plateau_patience:
+    value: 3
+    type: "int"
+    range: [0, None]
+    help: >
+          Number of epochs with no improvement before ReduceLROnPlateau lowers the learning rate.
+
+  lr_plateau_min_delta:
+    value: 0.0001
+    type: "float"
+    range: [0, None]
+    help: >
+          Minimum monitored improvement required to reset ReduceLROnPlateau patience.
+
+  lr_plateau_cooldown:
+    value: 0
+    type: "int"
+    range: [0, None]
+    help: >
+          Number of epochs to wait after a reduction before ReduceLROnPlateau resumes normal operation.
+
+  lr_plateau_min_lr:
+    value: 0.000001
+    type: "float"
+    range: [0, None]
+    help: >
+          Lower bound for the learning rate when using ReduceLROnPlateau.
+
+  lr_plateau_mode:
+    value: "auto"
+    type: "str"
+    choices: ["auto", "min", "max"]
+    help: >
+          Direction used by ReduceLROnPlateau to decide whether the monitored metric improved.
+
   l2_reg:
     value: 0.0001
     type: "float"

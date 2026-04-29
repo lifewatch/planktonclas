@@ -275,7 +275,6 @@ def launch_tensorboard(port, logdir, host="0.0.0.0"):  # nosec
 def get_callbacks(CONF, use_lr_decay=True):
     """
     Get a callback list to feed fit_generator.
-    #TODO Add ReduceLROnPlateau callback?
 
     Parameters
     ----------
@@ -299,15 +298,40 @@ def get_callbacks(CONF, use_lr_decay=True):
     )
 
     if use_lr_decay:
-        milestones = (
-            np.array(CONF["training"]["lr_step_schedule"]) * CONF["training"]["epochs"]
-        )
-        milestones = milestones.astype(np.int64)
-        calls.append(
-            LR_scheduler(
-                lr_decay=CONF["training"]["lr_step_decay"],
-                epoch_milestones=milestones.tolist(),
-            ))
+        schedule_mode = CONF["training"].get("lr_schedule_mode", "step")
+        if schedule_mode == "step":
+            milestones = (
+                np.array(CONF["training"]["lr_step_schedule"]) * CONF["training"]["epochs"]
+            )
+            milestones = milestones.astype(np.int64)
+            calls.append(
+                LR_scheduler(
+                    lr_decay=CONF["training"]["lr_step_decay"],
+                    epoch_milestones=milestones.tolist(),
+                )
+            )
+        elif schedule_mode == "plateau":
+            monitor_name = CONF["training"].get("lr_plateau_monitor", "val_loss")
+            if monitor_name.startswith("val_") and not CONF["training"]["use_validation"]:
+                monitor_name = "loss"
+                logger.warning(
+                    "[train] ReduceLROnPlateau monitor '%s' requires validation; falling back to '%s'.",
+                    CONF["training"].get("lr_plateau_monitor", "val_loss"),
+                    monitor_name,
+                )
+
+            calls.append(
+                callbacks.ReduceLROnPlateau(
+                    monitor=monitor_name,
+                    factor=CONF["training"].get("lr_plateau_factor", 0.1),
+                    patience=CONF["training"].get("lr_plateau_patience", 3),
+                    min_delta=CONF["training"].get("lr_plateau_min_delta", 1e-4),
+                    cooldown=CONF["training"].get("lr_plateau_cooldown", 0),
+                    min_lr=CONF["training"].get("lr_plateau_min_lr", 1e-6),
+                    mode=CONF["training"].get("lr_plateau_mode", "auto"),
+                    verbose=1,
+                )
+            )
 
     if CONF["monitor"].get("use_tensorboard", False):
         calls.append(

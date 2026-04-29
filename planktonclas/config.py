@@ -103,7 +103,9 @@ def apply_internal_defaults(conf_d):
     pretrained_conf.setdefault("use_pretrained", False)
     pretrained_conf.setdefault("name", None)
     pretrained_conf.setdefault("version", "latest")
-    training_conf.setdefault("lr_schedule_mode", "step")
+    training_conf.setdefault("lr_schedule_mode", "plateau")
+    training_conf.setdefault("resume_from_timestamp", None)
+    training_conf.setdefault("resume_from_ckpt_name", None)
     return conf_d
 
 
@@ -182,6 +184,12 @@ def check_conf(conf=None):
 
 _DOUBLE_QUOTED_BACKSLASH_PATTERN = re.compile(r'"([^"\\]*(?:\\.[^"\\]*)*)"')
 _VALID_YAML_ESCAPES = set("0abtnvfreN_LPuxU\"\\/")
+_PATH_VALUE_KEYS = {
+    ("general", "base_directory"),
+    ("general", "images_directory"),
+    ("testing", "output_directory"),
+    ("testing", "file_location"),
+}
 
 
 def _escape_invalid_yaml_backslashes(raw_text):
@@ -220,17 +228,58 @@ def _escape_invalid_yaml_backslashes(raw_text):
     return _DOUBLE_QUOTED_BACKSLASH_PATTERN.sub(_normalize_scalar, raw_text)
 
 
+def _extract_literal_path_values(raw_text):
+    """
+    Read path values from the YAML source without interpreting backslashes.
+    """
+    overrides = {}
+    current_group = None
+    current_key = None
+
+    for line in raw_text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        group_match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$", line)
+        if group_match:
+            current_group = group_match.group(1)
+            current_key = None
+            continue
+
+        key_match = re.match(r"^\s{2}([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$", line)
+        if key_match:
+            current_key = key_match.group(1)
+            continue
+
+        if (current_group, current_key) not in _PATH_VALUE_KEYS:
+            continue
+
+        value_match = re.match(r'^\s{4}value:\s*(["\'])(.*)\1\s*$', line)
+        if value_match:
+            overrides[(current_group, current_key)] = value_match.group(2)
+
+    return overrides
+
+
 def load_yaml_config(stream_or_text):
     """
     Load YAML while tolerating Windows backslashes in double-quoted strings.
     """
     raw_text = stream_or_text.read() if hasattr(stream_or_text, "read") else stream_or_text
     try:
-        return yaml.safe_load(raw_text)
+        conf = yaml.safe_load(raw_text)
     except yaml.scanner.ScannerError as exc:
         if "found unknown escape character" not in str(exc):
             raise
-        return yaml.safe_load(_escape_invalid_yaml_backslashes(raw_text))
+        conf = yaml.safe_load(_escape_invalid_yaml_backslashes(raw_text))
+
+    path_overrides = _extract_literal_path_values(raw_text)
+    for (group, key), value in path_overrides.items():
+        if group in conf and key in conf[group] and "value" in conf[group][key]:
+            conf[group][key]["value"] = value
+
+    return conf
 
 
 def _load_conf_file(conf_path):
