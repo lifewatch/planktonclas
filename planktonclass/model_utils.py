@@ -35,7 +35,7 @@ from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.saved_model.signature_def_utils import (
     predict_signature_def, )
 
-from planktonclas import config, paths, utils
+from planktonclass import config, paths, utils
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +68,9 @@ PRETRAINED_MODELS = {
         "architecture": "EfficientNetV2B0",
         "versions": {
             "latest": {
-                "url": "https://zenodo.org/records/19663235/files/lifewatch/planktonclas-v1.0-PI10.zip?download=1",
+                "url": "https://zenodo.org/records/19663235/files/lifewatch/planktonclass-v1.0-PI10.zip?download=1",
                 "archive_type": "zip",
-                "source_dir_names": ["PI10", "planktonclas-v1.0-PI10"],
+                "source_dir_names": ["PI10", "planktonclass-v1.0-PI10"],
                 "checkpoint_name": "best_model.keras",
             }
         },
@@ -225,7 +225,7 @@ def ensure_pretrained_model(models_dir, modelname=DEFAULT_PRETRAINED_MODEL, vers
                     if chunk:
                         tmp_file.write(chunk)
 
-        extract_dir = tempfile.mkdtemp(prefix="planktonclas-pretrained-")
+        extract_dir = tempfile.mkdtemp(prefix="planktonclass-pretrained-")
         if spec["archive_type"] == "zip":
             _safe_extract_zip(temp_archive, extract_dir)
         else:

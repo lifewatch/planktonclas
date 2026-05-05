@@ -6,7 +6,7 @@ Overview
 
 This page shows the command-line workflow as a sequence of practical steps.
 
-Use this path when you want to work mainly with the ``planktonclas`` commands from the terminal.
+Use this path when you want to work mainly with the ``planktonclass`` commands from the terminal.
 
 CMD workflow
 ------------
@@ -27,14 +27,14 @@ Step 1: Install the package
 
 .. code-block:: bash
 
-   pip install planktonclas
+   pip install planktonclass
 
 Step 2: Create a project
 ------------------------
 
 .. code-block:: bash
 
-   planktonclas init my_project
+   planktonclass init my_project
 
 This creates:
 
@@ -46,14 +46,14 @@ For a runnable demo project:
 
 .. code-block:: bash
 
-   planktonclas init my_project --demo
+   planktonclass init my_project --demo
 
 Step 3: Validate the config
 ---------------------------
 
 .. code-block:: bash
 
-   planktonclas validate-config my_project
+   planktonclass validate-config my_project
 
 This is the easiest way to catch path or configuration problems before training.
 
@@ -64,7 +64,7 @@ If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project --model FlowCam
+   planktonclass pretrained my_project --model FlowCam
 
 The published model id selects the instrument-specific weights, while ``model.modelname`` in ``config.yaml`` remains the architecture choice.
 
@@ -73,13 +73,13 @@ Step 5: Train a model
 
 .. code-block:: bash
 
-   planktonclas train my_project
+   planktonclass train my_project
 
 For a quick smoke test on a demo project:
 
 .. code-block:: bash
 
-   planktonclas train my_project --quick
+   planktonclass train my_project --quick
 
 This creates a new timestamped output directory under ``my_project/models/``.
 
@@ -88,7 +88,7 @@ Step 6: Generate a report
 
 .. code-block:: bash
 
-   planktonclas report my_project
+   planktonclass report my_project
 
 What the report step creates
 ----------------------------
@@ -107,7 +107,7 @@ Important note:
 * ``quick`` mode creates the core report figures
 * ``full`` mode also creates the threshold-based plots in the ``results/`` subfolders
 
-If you leave out ``--timestamp``, ``planktonclas report`` suggests the newest run automatically.
+If you leave out ``--timestamp``, ``planktonclass report`` suggests the newest run automatically.
 
 Step 7: Optional inference Docker image
 ---------------------------------------
@@ -116,13 +116,13 @@ Once you are happy with the report for a trained run, you can package that run i
 
 .. code-block:: bash
 
-   planktonclas docker my_project
+   planktonclass docker my_project
 
 You can select a specific run and checkpoint if needed:
 
 .. code-block:: bash
 
-   planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
+   planktonclass docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
 
 Step 8: What you can do after training
 --------------------------------------
@@ -136,31 +136,31 @@ You can:
 * inspect stats under ``models/<timestamp>/stats/``
 * inspect saved predictions under ``models/<timestamp>/predictions/``
 * inspect reports under ``models/<timestamp>/results/``
-* package a run into Docker with ``planktonclas docker my_project``
-* start the API with ``planktonclas api my_project``
-* copy notebooks with ``planktonclas notebooks my_project``
-* list available trained runs with ``planktonclas list-models my_project``
+* package a run into Docker with ``planktonclass docker my_project``
+* start the API with ``planktonclass api my_project``
+* copy notebooks with ``planktonclass notebooks my_project``
+* list available trained runs with ``planktonclass list-models my_project``
 
 Useful command summary
 ----------------------
 
 .. code-block:: bash
 
-   planktonclas init my_project
-   planktonclas init my_project --demo
-   planktonclas validate-config my_project
-   planktonclas pretrained my_project --model FlowCyto
-   planktonclas train my_project
-   planktonclas train my_project --quick
-   planktonclas report my_project
-   planktonclas docker my_project
-   planktonclas list-models my_project
+   planktonclass init my_project
+   planktonclass init my_project --demo
+   planktonclass validate-config my_project
+   planktonclass pretrained my_project --model FlowCyto
+   planktonclass train my_project
+   planktonclass train my_project --quick
+   planktonclass report my_project
+   planktonclass docker my_project
+   planktonclass list-models my_project
 
-For published pretrained entries, ``planktonclas list-models my_project`` prints the model id together with architecture, version, and checkpoint metadata.
+For published pretrained entries, ``planktonclass list-models my_project`` prints the model id together with architecture, version, and checkpoint metadata.
 
 Practical caution
 -----------------
 
-For most users, it is best to keep the standard project layout created by ``planktonclas init`` unless you deliberately want to override paths in ``config.yaml``.
+For most users, it is best to keep the standard project layout created by ``planktonclass init`` unless you deliberately want to override paths in ``config.yaml``.
 
-In that standard layout, commands such as ``planktonclas validate-config my_project`` and ``planktonclas train my_project`` automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when you want to point to a different config file.
+In that standard layout, commands such as ``planktonclass validate-config my_project`` and ``planktonclass train my_project`` automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when you want to point to a different config file.

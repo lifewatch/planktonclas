@@ -1,5 +1,5 @@
 """
-Fast compatibility smoke runner for planktonclas.
+Fast compatibility smoke runner for planktonclass.
 
 This script does two related jobs:
 1. checks whether configured model names are still available in the current
@@ -23,7 +23,7 @@ from pathlib import Path
 import yaml
 from tensorflow.keras import applications
 
-from planktonclas import cli
+from planktonclass import cli
 
 
 STANDARD_MODEL_NAMES = [
@@ -200,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--with-report",
         action="store_true",
-        help="Also run `planktonclas report` for cases that keep a test split.",
+        help="Also run `planktonclass report` for cases that keep a test split.",
     )
     parser.add_argument(
         "--with-tensorboard-case",
@@ -246,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[{index}/{len(cases)}] Running {case.name}")
         print("=" * 72)
 
-        tmp_path = Path(tempfile.mkdtemp(prefix="planktonclas-smoke-"))
+        tmp_path = Path(tempfile.mkdtemp(prefix="planktonclass-smoke-"))
         project_dir = tmp_path / case.name
 
         try:

@@ -11,14 +11,14 @@ import logging
 
 
 APP_LOGGERS = [
-    "planktonclas",
-    "planktonclas.api",
-    "planktonclas.train_runfile",
-    "planktonclas.model_utils",
-    "planktonclas.data_utils",
-    "planktonclas.utils",
+    "planktonclass",
+    "planktonclass.api",
+    "planktonclass.train_runfile",
+    "planktonclass.model_utils",
+    "planktonclass.data_utils",
+    "planktonclass.utils",
 ]
-EPOCH_LOGGER = "planktonclas.epoch_metrics"
+EPOCH_LOGGER = "planktonclass.epoch_metrics"
 
 class SuppressFilter(logging.Filter):
     """Filter to suppress specific log messages."""
@@ -154,7 +154,7 @@ def _configure_app_logging():
     )
     console_handler.setFormatter(formatter)
     
-    # Configure planktonclas loggers to show everything
+    # Configure planktonclass loggers to show everything
     for logger_name in APP_LOGGERS:
         app_logger = logging.getLogger(logger_name)
         app_logger.setLevel(logging.DEBUG)

@@ -4,25 +4,25 @@ Reference
 Package entry points
 --------------------
 
-``planktonclas.api``
+``planktonclass.api``
    DEEPaaS-facing API layer. Handles metadata, schema generation, training dispatch, model loading, file validation, and prediction formatting.
 
-``planktonclas.train_runfile``
+``planktonclass.train_runfile``
    Direct training runner. Creates output directories, builds generators, trains the TensorFlow model, stores metrics, saves checkpoints, and optionally evaluates a test split.
 
-``planktonclas.config``
+``planktonclass.config``
    Loads the packaged default config template or a user-provided project ``config.yaml``, validates values, and exposes the flattened configuration dictionary used across the package.
 
-``planktonclas.paths``
+``planktonclass.paths``
    Central path resolver for images, models, checkpoints, logs, stats, and predictions.
 
-``planktonclas.report_utils``
+``planktonclass.report_utils``
    Generates evaluation plots and summary files in the timestamped ``results/`` directory.
 
-``planktonclas.test_utils``
+``planktonclass.test_utils``
    Inference helpers for crop-based prediction and top-k accuracy computation.
 
-``planktonclas.visualization``
+``planktonclass.visualization``
    Visualization and explainability utilities, including saliency-related helpers used by the notebooks.
 
 Configuration map
@@ -51,9 +51,9 @@ Important conventions
 * published pretrained models are selected through ``pretrained.use_pretrained``, ``pretrained.name``, and ``pretrained.version``
 * ``model.modelname`` stays the base architecture choice, while the pretrained selection identifies the published instrument-specific weights to load
 * new local training runs save ``best_model.keras`` when validation is enabled; otherwise they save ``final_model.keras``. The published ``FlowCam`` pretrained model currently uses ``final_model.h5`` while ``FlowCyto`` and ``PI10`` are expected to use ``best_model.keras``
-* ``planktonclas report`` suggests the most recent timestamp when ``--timestamp`` is omitted and can prompt for another run by number
-* ``planktonclas report`` defaults to ``quick`` mode and only generates the subfolder threshold plots in ``full`` mode
-* ``planktonclas list-models`` shows published pretrained models with their architecture, version, and checkpoint metadata when the folder name matches a published model id
+* ``planktonclass report`` suggests the most recent timestamp when ``--timestamp`` is omitted and can prompt for another run by number
+* ``planktonclass report`` defaults to ``quick`` mode and only generates the subfolder threshold plots in ``full`` mode
+* ``planktonclass list-models`` shows published pretrained models with their architecture, version, and checkpoint metadata when the folder name matches a published model id
 
 Practical usage after a model is created
 ----------------------------------------
@@ -73,7 +73,7 @@ Load the project config
 
 .. code-block:: python
 
-   from planktonclas import config
+   from planktonclass import config
 
    config.set_config_path("my_project/config.yaml")
    conf = config.get_conf_dict()
@@ -83,8 +83,8 @@ Load a trained model
 
 .. code-block:: python
 
-   from planktonclas import config, paths
-   from planktonclas.api import load_inference_model
+   from planktonclass import config, paths
+   from planktonclass.api import load_inference_model
 
    config.set_config_path("my_project/config.yaml")
    paths.CONF = config.get_conf_dict()
@@ -99,7 +99,7 @@ Predict one image from Python
 
 .. code-block:: python
 
-   from planktonclas import config, paths, api, test_utils
+   from planktonclass import config, paths, api, test_utils
 
    config.set_config_path("my_project/config.yaml")
    paths.CONF = config.get_conf_dict()
@@ -119,7 +119,7 @@ Predict one image from Python
 Use a Dockerized inference server from Python
 ---------------------------------------------
 
-After you have trained a model, reviewed the report, and packaged the run with ``planktonclas docker my_project``, you can talk to the running API from Python with ``requests``.
+After you have trained a model, reviewed the report, and packaged the run with ``planktonclass docker my_project``, you can talk to the running API from Python with ``requests``.
 
 Start the container, for example:
 
@@ -138,7 +138,7 @@ Then from Python:
    base_url = "http://127.0.0.1:5001"
    health_url = f"{base_url}/api"
    swagger_url = f"{base_url}/swagger.json"
-   predict_url = f"{base_url}/v2/models/planktonclas/predict/"
+   predict_url = f"{base_url}/v2/models/planktonclass/predict/"
 
    print(requests.get(health_url, timeout=5).status_code)
    print(requests.get(swagger_url, timeout=5).status_code)
@@ -165,7 +165,7 @@ Inspect output locations
 
 .. code-block:: python
 
-   from planktonclas import config, paths
+   from planktonclass import config, paths
 
    config.set_config_path("my_project/config.yaml")
    paths.CONF = config.get_conf_dict()
@@ -180,8 +180,8 @@ Source files
 
 For the implementation details, start with these files in the repository:
 
-* ``planktonclas/api.py``
-* ``planktonclas/train_runfile.py``
-* ``planktonclas/config.py``
-* ``planktonclas/paths.py``
-* ``planktonclas/test_utils.py``
+* ``planktonclass/api.py``
+* ``planktonclass/train_runfile.py``
+* ``planktonclass/config.py``
+* ``planktonclass/paths.py``
+* ``planktonclass/test_utils.py``

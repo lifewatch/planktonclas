@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from planktonclas.data_utils import (
+from planktonclass.data_utils import (
     create_data_splits,
     load_class_names,
     load_data_splits,

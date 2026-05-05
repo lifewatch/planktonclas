@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "planktonclas"
+name = "planktonclass"
 description = "Phytoplankton image classification package with CLI, training, reports, and DEEPaaS API support"
 # !! Authors and Authors_emails are taken from setup.py. Otherwise wrongly rendered !!
 readme = "README.md"
@@ -22,12 +22,12 @@ authors = [ {name= "Wout Decrop (VLIZ)", email= "wout.decrop@vliz.be"} ]
 #authors-email = [ "wout.decrop@vliz.be"]
 
 [project.urls]
-"Homepage" = "https://github.com/lifewatch/planktonclas"
-"Bug Tracker" = "https://github.com/lifewatch/planktonclas/issues"
-"Documentation" = "https://plantonclas.readthedocs.io/en/latest/"
+"Homepage" = "https://github.com/lifewatch/planktonclass"
+"Bug Tracker" = "https://github.com/lifewatch/planktonclass/issues"
+"Documentation" = "https://planktonclass.readthedocs.io/en/latest/"
 
 [project.scripts]
-planktonclas = "planktonclas.cli:main"
+planktonclass = "planktonclass.cli:main"
 
 [project.optional-dependencies]
 notebooks = [
@@ -51,10 +51,10 @@ testpaths = ["tests"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["planktonclas*"]
+include = ["planktonclass*"]
 
 [tool.setuptools.package-data]
-planktonclas = [
+planktonclass = [
     "resources/*.yaml",
     "resources/dataset_files/*",
     "resources/notebooks/*.ipynb",
@@ -70,4 +70,4 @@ dependencies = { file = ["requirements.txt"] }
 version = { file = "VERSION" }
 
 [project.entry-points."deepaas.v2.model"]
-planktonclas = "planktonclas.api"
+planktonclass = "planktonclass.api"

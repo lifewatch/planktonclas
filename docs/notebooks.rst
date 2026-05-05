@@ -26,7 +26,7 @@ Step 1: Install the notebook extra
 
 .. code-block:: bash
 
-   pip install "planktonclas[notebooks]"
+   pip install "planktonclass[notebooks]"
 
 This installs the Jupyter runtime packages needed to open and execute the notebooks locally.
 
@@ -35,7 +35,7 @@ Step 2: Create a project
 
 .. code-block:: bash
 
-   planktonclas init my_project
+   planktonclass init my_project
 
 This creates the standard project structure and a local ``config.yaml``.
 
@@ -44,7 +44,7 @@ Step 3: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config my_project
+   planktonclass validate-config my_project
 
 Step 4: Optional pretrained model
 ---------------------------------
@@ -53,7 +53,7 @@ If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project --model FlowCam
+   planktonclass pretrained my_project --model FlowCam
 
 Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
 
@@ -62,17 +62,17 @@ Step 5: Copy the notebooks into the project
 
 .. code-block:: bash
 
-   planktonclas notebooks my_project
+   planktonclass notebooks my_project
 
 This creates ``my_project/notebooks/`` and copies the packaged notebooks there.
 
-With the standard project layout from ``planktonclas init``, commands such as ``planktonclas validate-config my_project`` and ``planktonclas train my_project`` automatically use ``my_project/config.yaml``.
+With the standard project layout from ``planktonclass init``, commands such as ``planktonclass validate-config my_project`` and ``planktonclass train my_project`` automatically use ``my_project/config.yaml``.
 
 To refresh an existing project with updated packaged notebooks:
 
 .. code-block:: bash
 
-   planktonclas notebooks my_project --force
+   planktonclass notebooks my_project --force
 
 The copied notebooks auto-detect the nearest project ``config.yaml``, so they use the paths inside your local project folder rather than the installed package directory.
 They also copy ``data/data_transformation/start``, ``reference_style``, and ``end`` for the image-transformation notebook.
@@ -135,4 +135,4 @@ If you are inside an AI4OS deployment or a container image that ships the helper
 
    deep-start -j
 
-That command is deployment-specific. It is not part of the local ``planktonclas`` CLI.
+That command is deployment-specific. It is not part of the local ``planktonclass`` CLI.

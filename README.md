@@ -1,10 +1,10 @@
-Planktonclas: FlowCam
+planktonclass: FlowCam
 =======================================================
 
-[![Smoke Tests](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/tests.yml)
-[![Integration](https://github.com/lifewatch/planktonclas/actions/workflows/integration.yml/badge.svg)](https://github.com/lifewatch/planktonclas/actions/workflows/integration.yml)
-[![PyPI version](https://img.shields.io/pypi/v/planktonclas.svg)](https://pypi.org/project/planktonclas/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/planktonclas.svg)](https://pypi.org/project/planktonclas/)
+[![Smoke Tests](https://github.com/lifewatch/planktonclass/actions/workflows/tests.yml/badge.svg)](https://github.com/lifewatch/planktonclass/actions/workflows/tests.yml)
+[![Integration](https://github.com/lifewatch/planktonclass/actions/workflows/integration.yml/badge.svg)](https://github.com/lifewatch/planktonclass/actions/workflows/integration.yml)
+[![PyPI version](https://img.shields.io/pypi/v/planktonclass.svg)](https://pypi.org/project/planktonclass/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/planktonclass.svg)](https://pypi.org/project/planktonclass/)
 
 <table>
   <tr>
@@ -16,21 +16,21 @@ Planktonclas: FlowCam
 [*Automated image classification workflow for phytoplankton monitoring*](https://doi.org/10.3389/fmars.2025.1699781)
 
 **Resources:**
-- [Documentation](https://plantonclas.readthedocs.io/en/latest/)
-- [PyPI package](https://pypi.org/project/planktonclas/)
-- [Package downloads](https://pypi.org/project/planktonclas/)
+- [Documentation](https://planktonclass.readthedocs.io/en/latest/)
+- [PyPI package](https://pypi.org/project/planktonclass/)
+- [Package downloads](https://pypi.org/project/planktonclass/)
 
 **Projects:** [iMagine](https://www.imagine-ai.eu/)
   
-`planktonclas` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
+`planktonclass` is a toolkit for training, evaluating, and serving phytoplankton image classifiers!
 
 
 It was originally developed for FlowCam data, and has also been retrained or adapted in separate branches for other instruments and datasets:
 
-- [FlowCam / main branch](https://github.com/lifewatch/planktonclas/tree/master)
-- [Zooscan branch](https://github.com/lifewatch/planktonclas/tree/zooscan)
-- [Cyto branch](https://github.com/lifewatch/planktonclas/tree/cyto)
-- [PI10 branch](https://github.com/lifewatch/planktonclas/tree/PI10)
+- [FlowCam / main branch](https://github.com/lifewatch/planktonclass/tree/master)
+- [Zooscan branch](https://github.com/lifewatch/planktonclass/tree/zooscan)
+- [Cyto branch](https://github.com/lifewatch/planktonclass/tree/cyto)
+- [PI10 branch](https://github.com/lifewatch/planktonclass/tree/PI10)
 
 If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment assets, and broader project explanation, see:
 - [`phyto-plankton-classification`](https://github.com/ai4os-hub/phyto-plankton-classification)
@@ -77,13 +77,13 @@ If you want the full repository with Docker, OSCAR, AI4OS, packaged deployment a
 Install with Python 3.12 and `pip`:
 
 ```bash
-pip install planktonclas
+pip install planktonclass
 ```
 
 For notebook support:
 
 ```bash
-pip install "planktonclas[notebooks]"
+pip install "planktonclass[notebooks]"
 ```
 
 
@@ -94,7 +94,7 @@ pip install "planktonclas[notebooks]"
 Use:
 
 ```bash
-planktonclas train my_project
+planktonclass train my_project
 ```
 
 This is the best choice if you already know where your image folder is and want a direct local workflow.
@@ -104,7 +104,7 @@ This is the best choice if you already know where your image folder is and want 
 Use:
 
 ```bash
-planktonclas api my_project
+planktonclass api my_project
 ```
 
 Then open:
@@ -119,62 +119,62 @@ This is the best choice if you want to interact through the DEEPaaS UI or integr
 Use:
 
 ```bash
-planktonclas notebooks my_project
+planktonclass notebooks my_project
 ```
 
 This copies the packaged notebooks into `my_project/notebooks/`. It is the best choice for exploration, augmentation experiments, prediction analysis, and explainability.
 
-`pip install planktonclas` installs the package dependencies used by the notebooks, including TensorFlow, plotting, and reporting libraries.
+`pip install planktonclass` installs the package dependencies used by the notebooks, including TensorFlow, plotting, and reporting libraries.
 For local notebook use, install the notebook extra instead:
 
 ```bash
-pip install "planktonclas[notebooks]"
+pip install "planktonclass[notebooks]"
 ```
 
 ## Quick Start
 
 ### Option A: Use it locally
-[Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
+[Read the Docs site](https://planktonclass.readthedocs.io/en/latest/)
 
 ```bash
-pip install planktonclas
+pip install planktonclass
 ```
 
 Then create a project:
 
 ```bash
-planktonclas init my_project
+planktonclass init my_project
 ```
 
 Or create a runnable demo project:
 
 ```bash
-planktonclas init my_project --demo
+planktonclass init my_project --demo
 ```
 
 *OPTIONAL*: Validate the generated config:
 
 ```bash
-planktonclas validate-config my_project
+planktonclass validate-config my_project
 ```
 
 
 Local training:
 
 ```bash
-planktonclas train my_project
+planktonclass train my_project
 ```
 
 For a quick smoke test on the demo project:
 
 ```bash
-planktonclas train my_project --quick
+planktonclass train my_project --quick
 ```
 
 *OPTIONAL*: Download a published pretrained model into the project:
 
 ```bash
-planktonclas pretrained my_project --model FlowCam
+planktonclass pretrained my_project --model FlowCam
 ```
 
 Available published pretrained model names currently include `FlowCam`, `FlowCyto`, and `PI10`.
@@ -184,42 +184,42 @@ full exported project tree.
 *OPTIONAL*: Build an inference Docker image from your trained model run:
 
 ```bash
-planktonclas docker my_project
+planktonclass docker my_project
 ```
 
 For the published `FlowCam` pretrained model, the packaged checkpoint is currently
 `final_model.h5`. The `FlowCyto` and `PI10` published models are expected to use
-`best_model.keras`. New training runs created by `planktonclas train`
+`best_model.keras`. New training runs created by `planktonclass train`
 save `best_model.keras` when validation is enabled. If you train without validation,
 the run saves `final_model.keras` instead.
 
 Report generation after training:
 
 ```bash
-planktonclas report my_project
+planktonclass report my_project
 ```
 
-If you leave out `--timestamp`, `planktonclas report` suggests the most recent run, lists the available timestamps, and lets you choose another one by number.
+If you leave out `--timestamp`, `planktonclass report` suggests the most recent run, lists the available timestamps, and lets you choose another one by number.
 It also lets you choose between `quick` and `full` mode. `quick` is the default and creates the core figures only; `full` also generates the threshold-based plots in the `results/` subfolders.
 
 ### Option B: Use api
-[Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
+[Read the Docs site](https://planktonclass.readthedocs.io/en/latest/)
 
 ```bash
-pip install planktonclas
+pip install planktonclass
 ```
 
 Then create a project:
 
 ```bash
-planktonclas init my_project
+planktonclass init my_project
 ```
 
 
 Local API:
 
 ```bash
-planktonclas api my_project
+planktonclass api my_project
 ```
 
 ### Option C: I want notebooks
@@ -227,19 +227,19 @@ planktonclas api my_project
 For local notebook use:
 
 ```bash
-pip install "planktonclas[notebooks]"
+pip install "planktonclass[notebooks]"
 ```
 
 Then create a project:
 
 ```bash
-planktonclas init my_project
+planktonclass init my_project
 ```
 
 Copy notebooks into the project:
 
 ```bash
-planktonclas notebooks my_project
+planktonclass notebooks my_project
 ```
 
 In the model-based notebooks (`3.0`, `3.1`, and `3.2`), the first variables to check are `TIMESTAMP` and `MODEL_NAME`. They are prefilled for the published pretrained model so the notebooks work out of the box, but when you want to inspect a model from your own training run you should change those two values first.
@@ -247,7 +247,7 @@ In the model-based notebooks (`3.0`, `3.1`, and `3.2`), the first variables to c
 
 ## Project Structure
 
-After `planktonclas init`, your project looks like this:
+After `planktonclass init`, your project looks like this:
 
 ```text
 my_project/
@@ -282,7 +282,7 @@ The main user config is a project-local `config.yaml`.
 It is created by:
 
 ```bash
-planktonclas init my_project
+planktonclass init my_project
 ```
 
 Most users only need to adjust a small number of fields:
@@ -303,23 +303,23 @@ Internal-only values such as model-specific preprocessing are now derived automa
 
 ## Local CLI Workflow
 
-The package installs a `planktonclas` command with these main subcommands:
+The package installs a `planktonclass` command with these main subcommands:
 
-- `planktonclas init [DIR]`
-- `planktonclas init [DIR] --demo`
-- `planktonclas validate-config [DIR]`
-- `planktonclas train [DIR]`
-- `planktonclas report [DIR] [--timestamp TS]`
-- `planktonclas api [DIR]`
-- `planktonclas docker [DIR]`
-- `planktonclas pretrained [DIR]`
-- `planktonclas list-models [DIR]`
-- `planktonclas notebooks [DIR]`
+- `planktonclass init [DIR]`
+- `planktonclass init [DIR] --demo`
+- `planktonclass validate-config [DIR]`
+- `planktonclass train [DIR]`
+- `planktonclass report [DIR] [--timestamp TS]`
+- `planktonclass api [DIR]`
+- `planktonclass docker [DIR]`
+- `planktonclass pretrained [DIR]`
+- `planktonclass list-models [DIR]`
+- `planktonclass notebooks [DIR]`
 
 The `pretrained` command accepts a published model name and version, for example:
 
 ```bash
-planktonclas pretrained my_project --model FlowCyto --version latest
+planktonclass pretrained my_project --model FlowCyto --version latest
 ```
 
 The `list-models` command now shows published pretrained models with extra metadata such as architecture, version, and checkpoint name, while local timestamped runs still appear as plain folder names.
@@ -327,20 +327,20 @@ The `list-models` command now shows published pretrained models with extra metad
 Typical local workflow:
 
 ```bash
-planktonclas init my_project
-planktonclas notebooks my_project
-planktonclas validate-config my_project
-planktonclas train my_project
-planktonclas docker my_project
-planktonclas report my_project
+planktonclass init my_project
+planktonclass notebooks my_project
+planktonclass validate-config my_project
+planktonclass train my_project
+planktonclass docker my_project
+planktonclass report my_project
 ```
 
 For a faster package smoke test with the demo data:
 
 ```bash
-planktonclas init my_project --demo
-planktonclas train my_project --quick
-planktonclas report my_project
+planktonclass init my_project --demo
+planktonclass train my_project --quick
+planktonclass report my_project
 ```
 
 ## API Workflow
@@ -348,8 +348,8 @@ planktonclas report my_project
 Start the API with:
 
 ```bash
-planktonclas init my_project
-planktonclas api my_project
+planktonclass init my_project
+planktonclass api my_project
 ```
 
 Then open:
@@ -360,8 +360,8 @@ Then open:
 You can also start DEEPaaS directly after a repo install:
 
 ```powershell
-$env:PLANKTONCLAS_CONFIG = (Resolve-Path .\my_project\config.yaml)
-$env:DEEPAAS_V2_MODEL = "planktonclas"
+$env:planktonclass_CONFIG = (Resolve-Path .\my_project\config.yaml)
+$env:DEEPAAS_V2_MODEL = "planktonclass"
 deepaas-run --listen-ip 0.0.0.0
 ```
 
@@ -378,8 +378,8 @@ Important notes:
 Copy the packaged notebooks into your project with:
 
 ```bash
-planktonclas init my_project
-planktonclas notebooks my_project
+planktonclass init my_project
+planktonclass notebooks my_project
 ```
 
 The copied notebooks auto-detect the nearest project `config.yaml`, so they use the paths inside your local project folder rather than the installed package directory.
@@ -427,29 +427,29 @@ Useful outputs include:
 For a portable inference runtime after training, you can package a selected model run into a Docker image:
 
 ```bash
-planktonclas docker my_project
+planktonclass docker my_project
 ```
 
 This builds an image from the local package source and bundles the latest trained timestamp by default.
 You can choose a specific run or checkpoint with:
 
 ```bash
-planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
+planktonclass docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
 ```
 
 To generate performance plots after training:
 
 ```bash
-planktonclas report my_project
+planktonclass report my_project
 ```
 
-If you keep the standard project layout created by `planktonclas init`, these commands automatically use `my_project/config.yaml`. Use `--config PATH` only when your config file lives somewhere else.
+If you keep the standard project layout created by `planktonclass init`, these commands automatically use `my_project/config.yaml`. Use `--config PATH` only when your config file lives somewhere else.
 
 ## More Documentation
 
 The full documentation is available here:
 
-- [Read the Docs site](https://plantonclas.readthedocs.io/en/latest/)
+- [Read the Docs site](https://planktonclass.readthedocs.io/en/latest/)
 - [Documentation entry page](docs/index.rst)
 
 Main documentation pages:
@@ -470,7 +470,7 @@ For Docker, OSCAR, AI4OS, and the broader deployment-oriented repository, see:
 Choose this only if you want to work on the package itself.
 
 ```bash
-git clone https://github.com/lifewatch/planktonclas
+git clone https://github.com/lifewatch/planktonclass
 cd phyto-plankton-classification
 python -m venv .venv
 .venv\Scripts\activate

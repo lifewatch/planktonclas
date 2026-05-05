@@ -1,7 +1,7 @@
-Planktonclas
+planktonclass
 ============
 
-``planktonclas`` is the package repository for training, evaluating, and serving phytoplankton image classifiers.
+``planktonclass`` is the package repository for training, evaluating, and serving phytoplankton image classifiers.
 
 It is the package-first home for:
 
@@ -15,9 +15,9 @@ It is the package-first home for:
 What the package does
 ---------------------
 
-With ``planktonclas``, you can:
+With ``planktonclass``, you can:
 
-* create a standard project structure with ``planktonclas init``
+* create a standard project structure with ``planktonclass init``
 * train a classifier from a project ``config.yaml``
 * generate reports from a training run
 * start a local DEEPaaS API for browser-based training and prediction

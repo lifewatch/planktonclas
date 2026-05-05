@@ -20,7 +20,7 @@ import yaml
 
 from importlib import metadata
 
-MODEL_NAME = os.getenv("MODEL_NAME", default="planktonclas")
+MODEL_NAME = os.getenv("MODEL_NAME", default="planktonclass")
 MODEL_METADATA = metadata.metadata(MODEL_NAME)
 # Fix metadata for authors from pyproject parsing
 _EMAILS = MODEL_METADATA["Author-email"].split(", ")
@@ -34,8 +34,8 @@ _AUTHORS += MODEL_METADATA["Author-emails"].keys()
 MODEL_METADATA["Authors"] = sorted(_AUTHORS)
 
 homedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_CONFIG_PATH = os.path.join(homedir, "planktonclas", "resources", "config.yaml")
-CONFIG_ENV_VAR = "PLANKTONCLAS_CONFIG"
+DEFAULT_CONFIG_PATH = os.path.join(homedir, "planktonclass", "resources", "config.yaml")
+CONFIG_ENV_VAR = "planktonclass_CONFIG"
 CONF_PATH = None
 CONFIG_ROOT = homedir
 CONF = None

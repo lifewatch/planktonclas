@@ -11,7 +11,7 @@ Github: ai4os-hub / phyto-plankton-classification
 
 import numpy as np
 import tensorflow as tf
-from planktonclas.data_utils import k_crop_data_sequence
+from planktonclass.data_utils import k_crop_data_sequence
 
 
 def predict(

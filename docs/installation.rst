@@ -1,7 +1,7 @@
 Installation
 ============
 
-This page is only about how to install ``planktonclas``.
+This page is only about how to install ``planktonclass``.
 
 If you want the first practical workflow after installation, use :doc:`quickstart`.
 
@@ -16,17 +16,17 @@ Standard package install:
 
 .. code-block:: bash
 
-   pip install planktonclas
+   pip install planktonclass
 
 For local notebook use:
 
 .. code-block:: bash
 
-   pip install "planktonclas[notebooks]"
+   pip install "planktonclass[notebooks]"
 
 What this gives you:
 
-* the ``planktonclas`` command-line tool
+* the ``planktonclass`` command-line tool
 * local training and reporting
 * local DEEPaaS API usage
 * packaged notebook export commands
@@ -39,8 +39,8 @@ Choose this only if you want to work on the package source itself.
 
 .. code-block:: bash
 
-   git clone https://github.com/lifewatch/planktonclas
-   cd planktonclas
+   git clone https://github.com/lifewatch/planktonclass
+   cd planktonclass
    python -m venv .venv
    .venv\Scripts\activate
    pip install -U pip
@@ -50,16 +50,16 @@ After a repository install, you can also start DEEPaaS directly:
 
 .. code-block:: powershell
 
-   $env:PLANKTONCLAS_CONFIG = (Resolve-Path .\my_project\config.yaml)
-   $env:DEEPAAS_V2_MODEL = "planktonclas"
+   $env:planktonclass_CONFIG = (Resolve-Path .\my_project\config.yaml)
+   $env:DEEPAAS_V2_MODEL = "planktonclass"
    deepaas-run --listen-ip 0.0.0.0
 
 Important notes
 ---------------
 
 * use ``127.0.0.1`` in the browser; ``0.0.0.0`` is only the bind address
-* for local notebooks, install ``"planktonclas[notebooks]"``
-* for training and API usage, you will usually create a project first with ``planktonclas init my_project``
+* for local notebooks, install ``"planktonclass[notebooks]"``
+* for training and API usage, you will usually create a project first with ``planktonclass init my_project``
 
 Next step
 ---------

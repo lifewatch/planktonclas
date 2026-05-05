@@ -1,4 +1,4 @@
-from planktonclas.cli import main
+from planktonclass.cli import main
 
 
 if __name__ == "__main__":

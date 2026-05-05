@@ -1,5 +1,5 @@
 """
-Command-line interface for planktonclas.
+Command-line interface for planktonclass.
 """
 
 import argparse
@@ -14,7 +14,7 @@ from importlib.resources import files
 
 import yaml
 
-from planktonclas import config, model_utils, paths
+from planktonclass import config, model_utils, paths
 
 
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +22,7 @@ DEFAULT_PROJECT_CONFIG_NAME = "config.yaml"
 
 
 def _resource_path(*parts):
-    return os.fspath(files("planktonclas").joinpath(*parts))
+    return os.fspath(files("planktonclass").joinpath(*parts))
 
 
 DEFAULT_NOTEBOOKS_DIR = _resource_path("resources", "notebooks")
@@ -194,7 +194,7 @@ def _prepare_docker_project_config(source_config_path, target_config_path, times
     conf["general"]["images_directory"]["value"] = "."
     conf["testing"]["timestamp"]["value"] = timestamp
     conf["testing"]["ckpt_name"]["value"] = ckpt_name
-    conf["testing"]["output_directory"]["value"] = "/tmp/planktonclas-predictions"
+    conf["testing"]["output_directory"]["value"] = "/tmp/planktonclass-predictions"
     _dump_yaml(target_config_path, conf)
 
 
@@ -210,8 +210,8 @@ def _copy_docker_build_context(context_dir, project_dir, timestamp, ckpt_name):
     for relative_path in package_files:
         _copy_if_exists(PACKAGE_ROOT, context_dir, relative_path)
 
-    package_src = os.path.join(PACKAGE_ROOT, "planktonclas")
-    package_dst = os.path.join(context_dir, "planktonclas")
+    package_src = os.path.join(PACKAGE_ROOT, "planktonclass")
+    package_dst = os.path.join(context_dir, "planktonclass")
     shutil.copytree(package_src, package_dst, dirs_exist_ok=True)
 
     project_dst = os.path.join(context_dir, "project")
@@ -243,10 +243,10 @@ def build_docker_image(args):
     timestamp = _resolve_model_timestamp(models_dir, args.timestamp)
     run_dir = os.path.join(models_dir, timestamp)
     ckpt_name = _resolve_checkpoint_name(run_dir, args.ckpt_name)
-    image_tag = args.tag or f"planktonclas-inference:{timestamp.lower()}"
+    image_tag = args.tag or f"planktonclass-inference:{timestamp.lower()}"
     docker_executable = _resolve_executable("docker")
 
-    with tempfile.TemporaryDirectory(prefix="planktonclas-docker-") as context_dir:
+    with tempfile.TemporaryDirectory(prefix="planktonclass-docker-") as context_dir:
         _copy_docker_build_context(context_dir, project_dir, timestamp, ckpt_name)
         command = [
             docker_executable,
@@ -422,7 +422,7 @@ def train_model(args):
     conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
 
-    from planktonclas.train_runfile import train_fn
+    from planktonclass.train_runfile import train_fn
 
     conf = config.get_conf_dict()
     conf["dataset"]["num_workers"] = args.workers
@@ -445,7 +445,7 @@ def retrain_model(args):
     )
     _apply_config(conf_path)
 
-    from planktonclas.train_runfile import train_fn
+    from planktonclass.train_runfile import train_fn
 
     conf = config.get_conf_dict()
     conf["dataset"]["num_workers"] = args.workers
@@ -477,7 +477,7 @@ def generate_report_cmd(args):
     conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     _apply_config(conf_path)
 
-    from planktonclas.report_utils import generate_report
+    from planktonclass.report_utils import generate_report
 
     selected_timestamp = _choose_report_timestamp(args.timestamp)
     selected_mode = _choose_report_mode(args.mode)
@@ -502,7 +502,7 @@ def run_api(args):
     conf_path = _resolve_config_argument(args.config, getattr(args, "target", None))
     env = os.environ.copy()
     env[config.CONFIG_ENV_VAR] = conf_path
-    env["DEEPAAS_V2_MODEL"] = "planktonclas"
+    env["DEEPAAS_V2_MODEL"] = "planktonclass"
 
     command = [_resolve_executable("deepaas-run"), "--listen-ip", args.host]
     if args.port is not None:
@@ -587,11 +587,11 @@ def download_pretrained(args):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(prog="planktonclas")
+    parser = argparse.ArgumentParser(prog="planktonclass")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     init_parser = subparsers.add_parser(
-        "init", help="Create a local planktonclas project structure."
+        "init", help="Create a local planktonclass project structure."
     )
     init_parser.add_argument("directory", nargs="?", default=".")
     init_parser.add_argument(
@@ -788,7 +788,7 @@ def build_parser():
     )
     docker_parser.add_argument(
         "--tag",
-        help="Docker image tag to build. Defaults to planktonclas-inference:<timestamp>.",
+        help="Docker image tag to build. Defaults to planktonclass-inference:<timestamp>.",
     )
     docker_parser.add_argument(
         "--base-image",

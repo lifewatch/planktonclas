@@ -16,7 +16,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import seaborn
 
-from planktonclas import paths
+from planktonclass import paths
 
 
 def create_pred_path(save_path, dir="", weighted=False, **kwargs):

@@ -37,7 +37,7 @@ from functools import wraps
 from aiohttp.web import HTTPException
 
 # Configure warnings early
-from planktonclas import warnings_config
+from planktonclass import warnings_config
 warnings_config.configure_warnings()
 
 class LoadingBar:
@@ -97,13 +97,13 @@ try:
     import logging
 
 
-    from planktonclas import config, paths, test_utils, utils, model_utils
-    from planktonclas.data_utils import (
+    from planktonclass import config, paths, test_utils, utils, model_utils
+    from planktonclass.data_utils import (
         load_aphia_ids,
         load_class_info,
         load_class_names,
     )
-    from planktonclas.train_runfile import train_fn
+    from planktonclass.train_runfile import train_fn
 finally:
     _import_loader.stop()
 
@@ -864,7 +864,7 @@ def get_predict_args():
     return populate_parser(parser, default_conf)
 
 
-def get_metadata(distribution_name="planktonclas"):
+def get_metadata(distribution_name="planktonclass"):
     """
     Function to read metadata
     """

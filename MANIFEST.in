@@ -4,7 +4,7 @@ include VERSION
 include pyproject.toml
 include requirements.txt
 
-graft planktonclas
+graft planktonclass
 
 prune data
 prune docs

@@ -22,13 +22,13 @@ Step 1: Create a project
 
 .. code-block:: bash
 
-   planktonclas init my_project
+   planktonclass init my_project
 
 Or create a runnable demo project:
 
 .. code-block:: bash
 
-   planktonclas init my_project --demo
+   planktonclass init my_project --demo
 
 This creates:
 
@@ -41,7 +41,7 @@ Step 2: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config my_project
+   planktonclass validate-config my_project
 
 Step 3: Optional pretrained model
 ---------------------------------
@@ -50,7 +50,7 @@ If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project --model FlowCam
+   planktonclass pretrained my_project --model FlowCam
 
 Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
 
@@ -58,20 +58,20 @@ You can also request another published model explicitly:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project --model FlowCyto --version latest
+   planktonclass pretrained my_project --model FlowCyto --version latest
 
 Step 4: Train a model
 ---------------------
 
 .. code-block:: bash
 
-   planktonclas train my_project
+   planktonclass train my_project
 
 For a quick smoke test on a demo project:
 
 .. code-block:: bash
 
-   planktonclas train my_project --quick
+   planktonclass train my_project --quick
 
 Step 5: Generate a report
 -------------------------
@@ -80,9 +80,9 @@ Before packaging a model run into Docker, it is usually best to inspect the repo
 
 .. code-block:: bash
 
-   planktonclas report my_project
+   planktonclass report my_project
 
-If you leave out ``--timestamp``, ``planktonclas report`` suggests the newest run automatically.
+If you leave out ``--timestamp``, ``planktonclass report`` suggests the newest run automatically.
 
 Step 6: Optional inference Docker image
 ---------------------------------------
@@ -91,7 +91,7 @@ If you want a more stable packaged inference runtime after training:
 
 .. code-block:: bash
 
-   planktonclas docker my_project
+   planktonclass docker my_project
 
 This packages the latest trained model run into a Docker image that serves the API for inference.
 
@@ -99,12 +99,12 @@ You can also select a specific run:
 
 .. code-block:: bash
 
-   planktonclas docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
+   planktonclass docker my_project --timestamp 2026-04-21_120000 --ckpt-name best_model.keras --tag my-plankton-api:latest
 
 Project structure
 -----------------
 
-After ``planktonclas init``, your project looks like this:
+After ``planktonclass init``, your project looks like this:
 
 .. code-block:: text
 
@@ -139,13 +139,13 @@ After the main quickstart pipeline, you can also use:
 
 .. code-block:: bash
 
-   planktonclas api my_project
-   planktonclas notebooks my_project
-   planktonclas list-models my_project
+   planktonclass api my_project
+   planktonclass notebooks my_project
+   planktonclass list-models my_project
 
-For published pretrained models, ``planktonclas list-models my_project`` includes architecture, version, and checkpoint metadata in the printed output.
+For published pretrained models, ``planktonclass list-models my_project`` includes architecture, version, and checkpoint metadata in the printed output.
 
-If you keep the standard project layout created by ``planktonclas init``, these commands automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when your config file lives somewhere else.
+If you keep the standard project layout created by ``planktonclass init``, these commands automatically use ``my_project/config.yaml``. Use ``--config PATH`` only when your config file lives somewhere else.
 
 Next step
 ---------

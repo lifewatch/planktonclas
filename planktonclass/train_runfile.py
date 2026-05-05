@@ -30,14 +30,14 @@ import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score
 
 # Configure warnings before importing TensorFlow/Keras.
-from planktonclas import warnings_config
+from planktonclass import warnings_config
 
 warnings_config.configure_warnings()
 
 import tensorflow as tf
 
-from planktonclas import config, model_utils, paths, utils
-from planktonclas.data_utils import (
+from planktonclass import config, model_utils, paths, utils
+from planktonclass.data_utils import (
     compute_classweights,
     compute_meanRGB,
     create_data_splits,
@@ -49,18 +49,18 @@ from planktonclas.data_utils import (
     load_data_splits,
     split_file_has_entries,
 )
-from planktonclas.optimizers import customAdam
-from planktonclas import test_utils
+from planktonclass.optimizers import customAdam
+from planktonclass import test_utils
 
 # TODO: Add additional metrics for test time in addition to accuracy
 
-# from planktonclas.api import load_inference_model
+# from planktonclass.api import load_inference_model
 
 # Set TensorFlow verbosity logs
 tf.get_logger().setLevel(logging.ERROR)
 
 # Configure logger for training
-logger = logging.getLogger("planktonclas.train_runfile")
+logger = logging.getLogger("planktonclass.train_runfile")
 logger.setLevel(logging.INFO)
 
 # Allow GPU memory growth
@@ -325,7 +325,7 @@ def train_fn(TIMESTAMP, CONF):
         len(X_train),
         0 if X_val is None else len(X_val),
     )
-    with utils.prefixed_stdout("planktonclas.train_runfile", "[train]"):
+    with utils.prefixed_stdout("planktonclass.train_runfile", "[train]"):
         history = model.fit(
             x=train_gen,
             steps_per_epoch=train_steps,
@@ -413,7 +413,7 @@ def train_fn(TIMESTAMP, CONF):
         )
         top_K = 5
 
-        with utils.prefixed_stdout("planktonclas.train_runfile", "[train]"):
+        with utils.prefixed_stdout("planktonclass.train_runfile", "[train]"):
             output = model.predict(
                 test_gen,
                 verbose=1,

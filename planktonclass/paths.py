@@ -12,7 +12,7 @@ Github: ai4os-hub / phyto-plankton-classification
 import os.path
 from datetime import datetime
 
-from planktonclas import config
+from planktonclass import config
 
 CONF = None
 timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")

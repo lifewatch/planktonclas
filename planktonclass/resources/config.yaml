@@ -64,8 +64,8 @@ pretrained:
     type: "bool"
     choices: [true, false]
     help: >
-          Load a published pretrained model from the local models directory. If it is missing, planktonclas can
-          download it with `planktonclas pretrained my_project --model NAME`.
+          Load a published pretrained model from the local models directory. If it is missing, planktonclass can
+          download it with `planktonclass pretrained my_project --model NAME`.
 
   name:
     value: "FlowCam"

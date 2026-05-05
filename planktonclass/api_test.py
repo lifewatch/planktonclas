@@ -1,7 +1,7 @@
-from planktonclas import config
+from planktonclass import config
 
 
-def get_metadata(distribution_name="planktonclas"):
+def get_metadata(distribution_name="planktonclass"):
     """
     Function to read metadata
     """

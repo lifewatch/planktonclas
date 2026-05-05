@@ -27,14 +27,14 @@ Step 1: Install the package
 
 .. code-block:: bash
 
-   pip install planktonclas
+   pip install planktonclass
 
 Step 2: Create a project
 ------------------------
 
 .. code-block:: bash
 
-   planktonclas init my_project
+   planktonclass init my_project
 
 This creates a local ``config.yaml`` and the standard project folders.
 
@@ -43,7 +43,7 @@ Step 3: Validate the config
 
 .. code-block:: bash
 
-   planktonclas validate-config my_project
+   planktonclass validate-config my_project
 
 Step 4: Optional pretrained model
 ---------------------------------
@@ -52,7 +52,7 @@ If you want to start from a published pretrained model:
 
 .. code-block:: bash
 
-   planktonclas pretrained my_project --model FlowCam
+   planktonclass pretrained my_project --model FlowCam
 
 Available published pretrained names currently include ``FlowCam``, ``FlowCyto``, and ``PI10``.
 
@@ -63,13 +63,13 @@ After training a model, you can package it into a Docker image for a more stable
 
 .. code-block:: bash
 
-   planktonclas docker my_project
+   planktonclass docker my_project
 
 Then run the API from Docker:
 
 .. code-block:: bash
 
-   docker run -p 5001:5000 planktonclas-inference:<timestamp>
+   docker run -p 5001:5000 planktonclass-inference:<timestamp>
 
 Inside the container, the API listens on port ``5000``. You can map any free host port.
 
@@ -81,13 +81,13 @@ The DEEPaaS entry point is defined in ``pyproject.toml``:
 .. code-block:: text
 
    [project.entry-points."deepaas.v2.model"]
-   planktonclas = "planktonclas.api"
+   planktonclass = "planktonclass.api"
 
 The simplest way to start the API is:
 
 .. code-block:: bash
 
-   planktonclas api my_project
+   planktonclass api my_project
 
 Then open:
 
@@ -100,8 +100,8 @@ After a repository install, you can also start the API directly:
 
 .. code-block:: powershell
 
-   $env:PLANKTONCLAS_CONFIG = (Resolve-Path .\my_project\config.yaml)
-   $env:DEEPAAS_V2_MODEL = "planktonclas"
+   $env:planktonclass_CONFIG = (Resolve-Path .\my_project\config.yaml)
+   $env:DEEPAAS_V2_MODEL = "planktonclass"
    deepaas-run --listen-ip 0.0.0.0
 
 Step 7: Train through the API
@@ -109,7 +109,7 @@ Step 7: Train through the API
 
 Typical browser flow:
 
-1. start ``planktonclas api my_project``
+1. start ``planktonclass api my_project``
 2. open ``/ui`` or ``/api#/``
 3. find the ``TRAIN`` operation
 4. edit the parameters you want
@@ -132,7 +132,7 @@ Important limitation:
 * ``images_directory`` is a path field, not a browser folder picker
 * the API cannot open a server-side folder chooser through Swagger UI
 * for local use, it is usually better to set the path in ``config.yaml`` before starting the API
-* with the standard project layout from ``planktonclas init``, ``planktonclas api my_project`` automatically uses ``my_project/config.yaml``
+* with the standard project layout from ``planktonclass init``, ``planktonclass api my_project`` automatically uses ``my_project/config.yaml``
 
 Step 8: Run prediction through the API
 --------------------------------------

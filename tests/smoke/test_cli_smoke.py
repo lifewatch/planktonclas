@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-from planktonclas import cli
+from planktonclass import cli
 
 
 def test_cli_init_creates_basic_project_structure(tmp_path):
@@ -33,14 +33,14 @@ def test_cli_train_accepts_project_directory(tmp_path, monkeypatch):
     cli.main(["init", str(project_dir)])
 
     captured = {}
-    fake_module = ModuleType("planktonclas.train_runfile")
+    fake_module = ModuleType("planktonclass.train_runfile")
 
     def fake_train_fn(TIMESTAMP, CONF):
         captured["timestamp"] = TIMESTAMP
         captured["conf"] = CONF
 
     fake_module.train_fn = fake_train_fn
-    monkeypatch.setitem(sys.modules, "planktonclas.train_runfile", fake_module)
+    monkeypatch.setitem(sys.modules, "planktonclass.train_runfile", fake_module)
 
     cli.main(["train", str(project_dir), "--quick", "--workers", "1"])
 
@@ -58,14 +58,14 @@ def test_cli_retrain_uses_selected_previous_run(tmp_path, monkeypatch, capsys):
     (ckpt_dir / "best_model.keras").write_text("", encoding="utf-8")
 
     captured = {}
-    fake_module = ModuleType("planktonclas.train_runfile")
+    fake_module = ModuleType("planktonclass.train_runfile")
 
     def fake_train_fn(TIMESTAMP, CONF):
         captured["timestamp"] = TIMESTAMP
         captured["conf"] = CONF
 
     fake_module.train_fn = fake_train_fn
-    monkeypatch.setitem(sys.modules, "planktonclas.train_runfile", fake_module)
+    monkeypatch.setitem(sys.modules, "planktonclass.train_runfile", fake_module)
 
     cli.main(["retrain", str(project_dir), "2026-04-29_115747", "--workers", "2"])
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from planktonclas import config, paths
+from planktonclass import config, paths
 
 
 def _normalized_path(path):

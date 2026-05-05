@@ -16,7 +16,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-from planktonclas import paths, plot_utils
+from planktonclass import paths, plot_utils
 
 
 REPORT_THRESHOLD_LEVELS = np.array([0.0, 0.50, 0.75, 0.90, 0.95], dtype=float)

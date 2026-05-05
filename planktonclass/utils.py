@@ -26,12 +26,12 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import callbacks
 from tensorflow.keras.layers import Dense
 
-from planktonclas import paths
-from planktonclas.optimizers import customAdam, customAdamW, customSGD
+from planktonclass import paths
+from planktonclass.optimizers import customAdam, customAdamW, customSGD
 
 # Configure logger
 logger = logging.getLogger(__name__)
-epoch_logger = logging.getLogger("planktonclas.epoch_metrics")
+epoch_logger = logging.getLogger("planktonclass.epoch_metrics")
 
 
 class CompatDense(Dense):

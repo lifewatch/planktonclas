@@ -22,7 +22,7 @@ import warnings
 from multiprocessing import Pool
 
 # Configure warnings early
-from planktonclas import warnings_config
+from planktonclass import warnings_config
 warnings_config.configure_warnings()
 
 import albumentations as A
@@ -31,7 +31,7 @@ import numpy as np
 import requests
 from tqdm import tqdm
 from tensorflow.keras.utils import Sequence, to_categorical
-from planktonclas import utils
+from planktonclass import utils
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -727,7 +727,7 @@ def compute_meanRGB(im_list, verbose=False, workers=4):
     if workers is None or workers <= 1:
         iterator = map(im_stats, im_list)
     else:
-        with utils.prefixed_stdout("planktonclas.data_utils", "[data]"):
+        with utils.prefixed_stdout("planktonclass.data_utils", "[data]"):
             with Pool(workers) as p:
                 r = list(
                     tqdm(
@@ -743,7 +743,7 @@ def compute_meanRGB(im_list, verbose=False, workers=4):
         iterator = None
 
     if iterator is not None:
-        with utils.prefixed_stdout("planktonclas.data_utils", "[data]"):
+        with utils.prefixed_stdout("planktonclass.data_utils", "[data]"):
             r = list(
                 tqdm(
                     iterator,
