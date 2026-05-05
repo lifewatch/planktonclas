@@ -1,4 +1,4 @@
-# Planktonclas: PI10
+# Planktonclass: PI10
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19663235.svg)](https://doi.org/10.5281/zenodo.19663235)
 
@@ -6,7 +6,7 @@
 **Authors:** [Wout Decrop](https://github.com/woutdecrop) *(VLIZ)* and [Jonas Mortelmans](https://github.com/jonasmortelmansvliz) *(VLIZ)*
 
 This branch is focused on the **PI10 processing workflow** at VLIZ!
-It uses the published `planktonclas` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
+It uses the published `planktonclass` package for classification and adds the scripts and configuration needed to process **Pi10 `.tar` files** locally.
 
 For general package usage, training workflows, CLI commands, API usage, notebooks, and full documentation, see:
 
@@ -19,7 +19,7 @@ For PI10-specific workflow details, see:
 
 ## PI10 Setup
 
-This branch is intended to **install `planktonclas` as a package** rather than install the package source from this branch.
+This branch is intended to **install `planktonclass` as a package** rather than install the package source from this branch.
 
 Create and activate a fresh virtual environment:
 
@@ -39,7 +39,7 @@ pip install -r requirements-pi10.txt
 
 This installs:
 
-- the published `planktonclas` package
+- the published `planktonclass` package
 - `scikit-image` for image-region measurements used by the PI10 scripts
 - `python-dotenv` for loading `.env` mail settings in the PI10 pipeline
 
@@ -63,7 +63,7 @@ That package is only needed for:
 ## Scope Of This Branch
 
 This README only documents the PI10-specific setup and entry points.
-The broader `planktonclas` package documentation, including installation options, training, prediction workflows, notebooks, and deployment guidance, is maintained in the main documentation site:
+The broader `planktonclass` package documentation, including installation options, training, prediction workflows, notebooks, and deployment guidance, is maintained in the main documentation site:
 
 - https://phyto-plankton-classification.readthedocs.io/en/latest/
 

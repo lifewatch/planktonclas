@@ -147,10 +147,10 @@ GTAGS
 
 # Things specific to this project 
 ###################################
-planktonclas/webpage/templates/labels.html
+planktonclass/webpage/templates/labels.html
 
 
-planktonclas/run_file.ipynb
+planktonclass/run_file.ipynb
 .Trash-0
 
 models/*
@@ -175,4 +175,4 @@ notebooks/test copy.ipynb
 notebooks/3.1-Prediction_statistics_old.ipynb
 notebooks/3.2-Saliency_maps copy.ipynb
 notebooks/test copy 2.ipynb
-planktonclas/train_iter.py
+planktonclass/train_iter.py
