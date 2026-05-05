@@ -17,6 +17,7 @@ def main():
     original_conf_path = config.CONF_PATH
     original_paths_conf = paths.CONF
     synthetic_unc_path = r"\\example-server\example-share\plankton-images"
+    expected_unc_path = config.normalize_user_path(synthetic_unc_path)
 
     try:
         with TemporaryDirectory() as temp_dir:
@@ -54,7 +55,7 @@ augmentation:
 """
         conf = config.load_yaml_config(raw_conf)
         conf_dict = config.get_conf_dict(conf)
-        assert conf_dict["general"]["images_directory"] == synthetic_unc_path
+        assert conf_dict["general"]["images_directory"] == expected_unc_path
 
         raw_conf_forward = """
 general:
@@ -71,7 +72,7 @@ augmentation:
 """
         conf_forward = config.load_yaml_config(raw_conf_forward)
         conf_forward_dict = config.get_conf_dict(conf_forward)
-        assert conf_forward_dict["general"]["images_directory"] == synthetic_unc_path
+        assert conf_forward_dict["general"]["images_directory"] == expected_unc_path
     finally:
         config.set_config_path(original_conf_path)
         paths.CONF = original_paths_conf
