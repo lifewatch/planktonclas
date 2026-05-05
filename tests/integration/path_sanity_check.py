@@ -1,5 +1,10 @@
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from planktonclass import config, paths
 
@@ -11,6 +16,7 @@ def _normalized_path(path):
 def main():
     original_conf_path = config.CONF_PATH
     original_paths_conf = paths.CONF
+    synthetic_unc_path = r"\\example-server\example-share\plankton-images"
 
     try:
         with TemporaryDirectory() as temp_dir:
@@ -38,7 +44,7 @@ general:
   base_directory:
     value: "."
   images_directory:
-    value: "\\\\qarchive\\data_sensors\\plankton-imager-10\\not_processed"
+    value: "\\\\example-server\\example-share\\plankton-images"
 testing:
   output_directory:
     value: null
@@ -48,14 +54,14 @@ augmentation:
 """
         conf = config.load_yaml_config(raw_conf)
         conf_dict = config.get_conf_dict(conf)
-        assert conf_dict["general"]["images_directory"] == r"\\qarchive\data_sensors\plankton-imager-10\not_processed"
+        assert conf_dict["general"]["images_directory"] == synthetic_unc_path
 
         raw_conf_forward = """
 general:
   base_directory:
     value: "."
   images_directory:
-    value: "//qarchive/data_sensors/plankton-imager-10/not_processed"
+    value: "//example-server/example-share/plankton-images"
 testing:
   output_directory:
     value: null
@@ -65,7 +71,7 @@ augmentation:
 """
         conf_forward = config.load_yaml_config(raw_conf_forward)
         conf_forward_dict = config.get_conf_dict(conf_forward)
-        assert conf_forward_dict["general"]["images_directory"] == r"\\qarchive\data_sensors\plankton-imager-10\not_processed"
+        assert conf_forward_dict["general"]["images_directory"] == synthetic_unc_path
     finally:
         config.set_config_path(original_conf_path)
         paths.CONF = original_paths_conf
