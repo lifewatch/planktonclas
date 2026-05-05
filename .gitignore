@@ -147,10 +147,10 @@ GTAGS
 
 # Things specific to this project 
 ###################################
-planktonclas/webpage/templates/labels.html
+planktonclass/webpage/templates/labels.html
 
 
-planktonclas/run_file.ipynb
+planktonclass/run_file.ipynb
 .Trash-0
 
 
@@ -175,18 +175,18 @@ notebooks/test copy.ipynb
 notebooks/3.1-Prediction_statistics_old.ipynb
 notebooks/3.2-Saliency_maps copy.ipynb
 notebooks/test copy 2.ipynb
-planktonclas/train_iter.py
+planktonclass/train_iter.py
 /plankton-project/src/plankton_project/__init__.py
 /plankton-project/tests/__init__.py
 /data/dataset_files_FLOWCAM/aphia_ids.txt
 /data/dataset_files_FLOWCAM/classes.txt
-/planktonclas/GPU_TEST.py
+/planktonclass/GPU_TEST.py
 /plankton-project/poetry.lock
-/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTars.py-OLD.py
-/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTarsTime-update.py
-/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_fscompute.py
-/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_gpu.py
-/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_gpu-ANNIKA.py
+/planktonclass/predict_pi10_untar_metrics_varJonas_final_SkipTars.py-OLD.py
+/planktonclass/predict_pi10_untar_metrics_varJonas_final_SkipTarsTime-update.py
+/planktonclass/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_fscompute.py
+/planktonclass/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_gpu.py
+/planktonclass/predict_pi10_untar_metrics_varJonas_final_SkipTarsTimeTweaks_gpu-ANNIKA.py
 /plankton-project/pyproject.toml
 /plankton-project/README.md
 /plankton-project/requirements.txt
