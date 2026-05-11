@@ -19,9 +19,10 @@ from pathlib import Path
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['NO_ALBUMENTATIONS_UPDATE'] = '1'
 
-# Point the installed package to this repo's local config before importing planktonclas.
+# Point the installed package to this repo's local config before importing planktonclass.
 REPO_ROOT = Path(__file__).resolve().parents[1]
-os.environ["PLANKTONCLAS_CONFIG"] = str(REPO_ROOT / "config.yaml")
+os.environ["PLANKTONCLASS_CONFIG"] = str(REPO_ROOT / "config.yaml")
+os.environ["planktonclass_CONFIG"] = str(REPO_ROOT / "config.yaml")
 
 import smtplib
 from email.mime.text import MIMEText
@@ -39,9 +40,9 @@ from skimage.io import imread
 from skimage.color import rgb2gray
 from skimage import measure, morphology
 from tensorflow.keras.models import load_model
-from planktonclas import paths as plk_paths, utils
-from planktonclas.test_utils import predict
-from planktonclas.data_utils import load_class_names
+from planktonclass import paths as plk_paths, utils
+from planktonclass.test_utils import predict
+from planktonclass.data_utils import load_class_names
 import datetime
 import threading
 import csv
