@@ -125,7 +125,7 @@ SMTP_PASSWORD=your_app_password
 
 ### 2. Directory Configuration
 
-Update the directory paths inside the main processing script according to your local setup:
+Create `PI10/predict_gpu_config.json` from `PI10/predict_gpu_config.example.json`, then update the private config file for your local setup. The private config file is ignored by git.
 
 source_dir — directory containing .tar files  
 work_dir — temporary working directory for extraction and analysis  
@@ -137,9 +137,7 @@ quarantine_*_dir — directories for problematic or incomplete files
 
 Place the trained model (for example: final_model.h5) and related configuration files in the appropriate folders.
 
-Set key variables inside the script for example to:
-TIMESTAMP = "2025-01-01"
-MODEL_NAME = "pi10_final_model"
+Set the model folder timestamp and filename in `PI10/predict_gpu_config.json`.
 
 ---
 
@@ -159,8 +157,7 @@ The script will continuously monitor the source directory for new .tar files, au
 Windows:
 1. Download exiftool(-k).exe from https://exiftool.org/
 2. Place it in a folder, for example: C:\ExifTool\
-3. Set the path in the script:
-   exiftool_path = "C:\\ExifTool\\exiftool.exe"
+3. Set `exiftool_path` in `PI10/predict_gpu_config.json`.
 
 Linux (Debian/Ubuntu):
 sudo apt install libimage-exiftool-perl

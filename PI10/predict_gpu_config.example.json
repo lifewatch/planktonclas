@@ -1,0 +1,17 @@
+{
+  "paths": {
+    "pi10_root": "/absolute/path/to/plankton-imager-10",
+    "source_dir": "processed/2025",
+    "work_dir": "not_processed/GPU_ENVIRONMENT/PI10_tempUntarred",
+    "gpu_env": "not_processed/GPU_ENVIRONMENT",
+    "log_dir": "not_processed/GPU_ENVIRONMENT/logs",
+    "preview_path": "not_processed/previews",
+    "dotenv_path": "not_processed/GPU_ENVIRONMENT/.env",
+    "exiftool_path": "not_processed/GPU_ENVIRONMENT/exiftool-13.31_64/exiftool.exe"
+  },
+  "model": {
+    "root": "../models",
+    "timestamp": "2025-10-09_140052-anasimyia",
+    "model_name": "final_model.h5"
+  }
+}

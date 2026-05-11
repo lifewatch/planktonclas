@@ -61,6 +61,8 @@ target/
 
 # DotEnv configuration
 .env
+PI10/predict_gpu_config.json
+PI10/predict_gpu_config.local.json
 
 # Database
 *.db
@@ -176,3 +178,6 @@ notebooks/3.1-Prediction_statistics_old.ipynb
 notebooks/3.2-Saliency_maps copy.ipynb
 notebooks/test copy 2.ipynb
 planktonclas/train_iter.py
+PI10/metrics_oneFolder.py
+PI10/metrics_oneFolder.py
+PI10/metrics_oneFolder.py
