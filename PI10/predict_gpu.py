@@ -509,7 +509,11 @@ if BASE.name == "PI10":
 print("\n🔎 BASE FIXED:", BASE)
 
 TIMESTAMP = MODEL_CONFIG.get("timestamp", "2025-10-09_140052-anasimyia")
-model_root = _path_from_config(MODEL_CONFIG, "root", BASE / "models", PREDICT_CONFIG_PATH.parent)
+# model_root = _path_from_config(MODEL_CONFIG, "root", BASE / "models", PREDICT_CONFIG_PATH.parent)
+
+model_root= _path_from_pi10_root(PATH_CONFIG, "model_dir", "not_processed", "models")
+
+
 model_path = model_root / TIMESTAMP
 CLASS_TRANSLATION_CSV = _path_from_config(
     PATH_CONFIG,
