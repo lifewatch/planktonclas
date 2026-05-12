@@ -5,6 +5,7 @@
     "work_dir": "not_processed/GPU_ENVIRONMENT/PI10_tempUntarred",
     "gpu_env": "not_processed/GPU_ENVIRONMENT",
     "log_dir": "not_processed/GPU_ENVIRONMENT/logs",
+    "model_dir": "not_processed/models",
     "preview_path": "not_processed/previews",
     "dotenv_path": "not_processed/GPU_ENVIRONMENT/.env",
     "exiftool_path": "not_processed/GPU_ENVIRONMENT/exiftool-13.31_64/exiftool.exe",
@@ -16,9 +17,8 @@
     "quarantine_nogps_dir": "not_processed/quarantained/quarantine-nogps"
   },
   "model": {
-    "root": "../models",
-    "timestamp": "2025-10-09_140052-anasimyia",
-    "model_name": "final_model.h5",
+    "timestamp": "2026-04-30_104022-dasysyrphus",
+    "model_name": "best_model.keras",
     "top_k": 3
   },
   "validation": {

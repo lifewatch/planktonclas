@@ -205,8 +205,7 @@ QUARANTINE_RADIUS_M = float(GPS_QUARANTINE_CONFIG.get("radius_m", 50))
 #=== MAILING ===
 from dotenv import load_dotenv
 dotenv_path = _path_from_config(PATH_CONFIG, "dotenv_path", gpu_env / ".env", PI10_ROOT)
-
-# Load the environment variables
+print(f"Loading environment variables from: {dotenv_path}")
 load_dotenv(dotenv_path=dotenv_path)
 EMAIL_SETTINGS = {
     'smtp_server': os.getenv('SMTP_SERVER'),
