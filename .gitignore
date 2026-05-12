@@ -167,17 +167,7 @@ data/images/*
 !models/.gitkeep
 # !models/phytoplankton_vliz/*
 
-notebooks\3.2-Saliency_maps.ipynb
-flowcam_2021_TEMP.csv
-compute.ipynb
-notebooks/1.1-Image_transormation_not_finished.ipynb
-notebooks/3.2-Saliency_maps
-notebooks/test.ipynb
-notebooks/test copy.ipynb
-notebooks/3.1-Prediction_statistics_old.ipynb
-notebooks/3.2-Saliency_maps copy.ipynb
-notebooks/test copy 2.ipynb
-planktonclass/train_iter.py
+
 PI10/metrics_oneFolder.py
-PI10/metrics_oneFolder.py
-PI10/metrics_oneFolder.py
+
+PI10/predict_o.py

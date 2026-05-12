@@ -9,7 +9,7 @@ Metadata
 - Updated: 2025-10-03
 - Version: 1.0.0
 - Documentation: Mortelmans J., Decrop W., Heynderickx H., Cattrijsse A., Depaepe M., Van Walraeven L., Scott J., Van Oevelen D., Deneudt K., Muniz C. (2025, submitted). High-throughput image classification and morphometry though the Pi-10 imaging pipeline
-- Source: https://github.com/ai4os-hub/phyto-plankton-classification/blob/PI10/planktonclas/predict_pi10_untar_metrics_varJonas_final_SkipTarsTime.py
+- Source: https://github.com/lifewatch/planktonclass/tree/PI10
 """
 
 ##to do: add startDate directly to bio-metrics
@@ -154,11 +154,53 @@ work_dir = _path_from_pi10_root(
 gpu_env = _path_from_pi10_root(PATH_CONFIG, "gpu_env", "not_processed", "GPU_ENVIRONMENT")
 
 
-quarantine_bubbles_dir = Path(source_dir / "quarantine-bubbles")
+quarantine_bubbles_dir = _path_from_config(
+    PATH_CONFIG,
+    "quarantine_bubbles_dir",
+    source_dir / "quarantine-bubbles",
+    PI10_ROOT,
+)
 quarantine_bubbles_dir.mkdir(parents=True, exist_ok=True)
 
-quarantine_hitsmiss_dir= Path(source_dir / "quarantine-hitsmisses")
+quarantine_hitsmiss_dir = _path_from_config(
+    PATH_CONFIG,
+    "quarantine_hitsmiss_dir",
+    source_dir / "quarantine-hitsmisses",
+    PI10_ROOT,
+)
 quarantine_hitsmiss_dir.mkdir(parents=True, exist_ok=True)
+
+quarantine_raisingfactor_dir = _path_from_config(
+    PATH_CONFIG,
+    "quarantine_raisingfactor_dir",
+    source_dir / "quarantine-raisingfactor",
+    PI10_ROOT,
+)
+quarantine_raisingfactor_dir.mkdir(parents=True, exist_ok=True)
+
+quarantine_near_point_dir = _path_from_config(
+    PATH_CONFIG,
+    "quarantine_near_point_dir",
+    source_dir / "quarantine-location-50m",
+    PI10_ROOT,
+)
+quarantine_near_point_dir.mkdir(parents=True, exist_ok=True)
+
+quarantine_nogps_dir = _path_from_config(
+    PATH_CONFIG,
+    "quarantine_nogps_dir",
+    source_dir / "quarantine-nogps",
+    PI10_ROOT,
+)
+quarantine_nogps_dir.mkdir(parents=True, exist_ok=True)
+
+VALIDATION_CONFIG = _config_section(PREDICT_CONFIG, "validation")
+GPS_QUARANTINE_CONFIG = _config_section(PREDICT_CONFIG, "gps_quarantine")
+MAX_MISS_HIT_RATIO = float(VALIDATION_CONFIG.get("max_miss_hit_ratio", 100))
+REQUIRED_HITSMISSES_ROWS = int(VALIDATION_CONFIG.get("required_hitsmisses_rows", 10))
+QUARANTINE_LAT = float(GPS_QUARANTINE_CONFIG.get("latitude", 51.235293843807796))
+QUARANTINE_LON = float(GPS_QUARANTINE_CONFIG.get("longitude", 2.9310864728604327))
+QUARANTINE_RADIUS_M = float(GPS_QUARANTINE_CONFIG.get("radius_m", 50))
 
 #=== MAILING ===
 from dotenv import load_dotenv
@@ -385,6 +427,17 @@ def track_time(start_time, module_name):
     return elapsed_time
 
 
+def remove_partial_outputs(tar_name, status_log):
+    for suffix in REQUIRED_SUFFIXES:
+        partial_file = source_dir / f"{tar_name}{suffix}"
+        try:
+            if partial_file.exists():
+                partial_file.unlink()
+                status_log.append(f"Removed partial output: {partial_file.name}")
+        except Exception as rm_err:
+            status_log.append(f"⚠️ Failed to remove {partial_file.name}: {rm_err}")
+
+
 
 
 # === SETUP ===
@@ -458,6 +511,12 @@ print("\n🔎 BASE FIXED:", BASE)
 TIMESTAMP = MODEL_CONFIG.get("timestamp", "2025-10-09_140052-anasimyia")
 model_root = _path_from_config(MODEL_CONFIG, "root", BASE / "models", PREDICT_CONFIG_PATH.parent)
 model_path = model_root / TIMESTAMP
+CLASS_TRANSLATION_CSV = _path_from_config(
+    PATH_CONFIG,
+    "class_translation_csv",
+    PI10_ROOT / "not_processed" / "models" / TIMESTAMP / "class_name_translation.csv",
+    PI10_ROOT,
+)
 
 print("📁 model_path:", model_path)
 
@@ -481,7 +540,7 @@ print("conf  :", plk_paths.get_conf_dir())
 
 
 MODEL_NAME = MODEL_CONFIG.get("model_name", "final_model.h5")
-TOP_K = 3
+TOP_K = int(MODEL_CONFIG.get("top_k", 3))
 
 
 class_names = load_class_names(splits_dir=plk_paths.get_ts_splits_dir())
@@ -492,6 +551,54 @@ with open(os.path.join(plk_paths.get_conf_dir(), 'conf.json')) as f:
 
 
 # === HELPER FUNCTIONS ===
+def haversine_m(lat1, lon1, lat2, lon2):
+    radius_m = 6371000
+    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    return 2 * radius_m * np.arcsin(np.sqrt(a))
+
+
+def get_usable_coordinates(exif_df):
+    """Return numeric GPS coordinates from EXIF, or an empty DataFrame if none are usable."""
+    if exif_df is None or exif_df.empty:
+        return pd.DataFrame(columns=["GPSLatitude", "GPSLongitude"])
+
+    if "GPSLatitude" not in exif_df.columns or "GPSLongitude" not in exif_df.columns:
+        return pd.DataFrame(columns=["GPSLatitude", "GPSLongitude"])
+
+    coords = exif_df[["GPSLatitude", "GPSLongitude"]].copy()
+    coords["GPSLatitude"] = pd.to_numeric(coords["GPSLatitude"], errors="coerce")
+    coords["GPSLongitude"] = pd.to_numeric(coords["GPSLongitude"], errors="coerce")
+    coords = coords.dropna(subset=["GPSLatitude", "GPSLongitude"])
+
+    return coords[
+        coords["GPSLatitude"].between(-90, 90)
+        & coords["GPSLongitude"].between(-180, 180)
+    ]
+
+
+def has_usable_coordinates(exif_df):
+    return not get_usable_coordinates(exif_df).empty
+
+
+def should_quarantine_location(exif_df):
+    coords = get_usable_coordinates(exif_df)
+    if coords.empty:
+        return False
+
+    distances = haversine_m(
+        coords["GPSLatitude"],
+        coords["GPSLongitude"],
+        QUARANTINE_LAT,
+        QUARANTINE_LON,
+    )
+    return (distances <= QUARANTINE_RADIUS_M).any()
+
+
 def outputs_exist_for_tar(tar_file):
     stem = tar_file.stem
     return all((source_dir / f"{stem}{suffix}").exists() for suffix in REQUIRED_SUFFIXES)
@@ -504,6 +611,9 @@ def get_new_tar_files(source_dir):
     quarantine_stems = set()
     quarantine_stems.update({tar.stem for tar in quarantine_bubbles_dir.glob("*.tar")})
     quarantine_stems.update({tar.stem for tar in quarantine_hitsmiss_dir.glob("*.tar")})
+    quarantine_stems.update({tar.stem for tar in quarantine_raisingfactor_dir.glob("*.tar")})
+    quarantine_stems.update({tar.stem for tar in quarantine_near_point_dir.glob("*.tar")})
+    quarantine_stems.update({tar.stem for tar in quarantine_nogps_dir.glob("*.tar")})
 
     done_stems = {p.stem for p in source_dir.glob("*.done")}
 
@@ -529,6 +639,41 @@ def get_new_tar_files(source_dir):
             new_files.append(tar)
 
     return new_files
+
+
+def load_label_translation(csv_path):
+    csv_path = Path(csv_path)
+
+    if not csv_path.exists():
+        print(f"⚠️ Translation CSV not found: {csv_path}")
+        return {}
+
+    df = pd.read_csv(csv_path)
+
+    required_cols = {"original_label", "translated_label"}
+    missing_cols = required_cols - set(df.columns)
+    if missing_cols:
+        raise ValueError(
+            f"Translation CSV is missing required column(s): {missing_cols}"
+        )
+
+    df = df[["original_label", "translated_label"]].dropna()
+
+    return {
+        str(row["original_label"]).strip(): str(row["translated_label"]).strip()
+        for _, row in df.iterrows()
+    }
+
+
+def translate_label(label, translation_dict):
+    label = str(label).strip()
+    translated = translation_dict.get(label)
+
+    if translated is None:
+        print(f"⚠️ No translation found for label '{label}', using original label")
+        translated = label
+
+    return translated
 
 
 def sanitize_taxon_name(name):
@@ -558,8 +703,16 @@ def unique_flattened_destination(dest_dir, src_name):
 
 
 def parse_prediction_lists(entry):
-    labels = entry.get(f"top{TOP_K}_labels", []) or entry.get("top3_labels", [])
-    probs = entry.get(f"top{TOP_K}_probs", []) or entry.get("top3_probs", [])
+    labels = (
+        entry.get(f"top{TOP_K}_labels", [])
+        or entry.get("top3_labels", [])
+        or entry.get("top2_labels", [])
+    )
+    probs = (
+        entry.get(f"top{TOP_K}_probs", [])
+        or entry.get("top3_probs", [])
+        or entry.get("top2_probs", [])
+    )
 
     if isinstance(labels, str):
         labels = [s.strip() for s in labels.split(",") if s.strip()]
@@ -639,6 +792,7 @@ def export_images_by_top1_taxon(
         }
 
     data = [entry for entry in data if isinstance(entry, dict)]
+    label_translation = load_label_translation(CLASS_TRANSLATION_CSV)
 
     tar_export_dir = export_root / tar_name
     if tar_export_dir.exists():
@@ -655,7 +809,10 @@ def export_images_by_top1_taxon(
         if not labels:
             continue
 
-        top1 = sanitize_taxon_name(labels[0])
+        original_top1 = str(labels[0]).strip()
+        translated_top1 = translate_label(original_top1, label_translation)
+
+        top1 = sanitize_taxon_name(translated_top1)
         top2 = sanitize_taxon_name(labels[1]) if len(labels) > 1 else None
         top1_prob = probs[0] if len(probs) > 0 else None
         top2_prob = probs[1] if len(probs) > 1 else 0.0
@@ -676,6 +833,8 @@ def export_images_by_top1_taxon(
         prepared_entries.append({
             "src": src,
             "top1": top1,
+            "original_top1": original_top1,
+            "translated_top1": translated_top1,
             "top2": top2,
             "top1_prob": top1_prob,
             "top2_prob": top2_prob,
@@ -724,6 +883,8 @@ def export_images_by_top1_taxon(
         validation_rows.append({
             "image": dest.name,
             "label": item["top1"],
+            "original_label": item["original_top1"],
+            "translated_label": item["translated_top1"],
             "user": VALIDATION_USER,
             "subset": item["bucket"],
             "folder": folder_name,
@@ -739,6 +900,8 @@ def export_images_by_top1_taxon(
         columns=[
             "image",
             "label",
+            "original_label",
+            "translated_label",
             "user",
             "subset",
             "folder",
@@ -872,11 +1035,13 @@ def extract_hitsmisses(tar_path, output_file, tar_file, status_log):
             df['RaisingFactor'] = df['hits']/(df['hits'] + df['misses'])
 
             #  Check row count
-            if len(df) < 10:  # should be at least 10 rows
-                quarantine_target = quarantine_hitsmiss_dir / tar_file.name
-                shutil.move(str(tar_file), str(quarantine_target))
-                status_log.append(f"Moved to quarantine_hitsmiss (<10 rows)")
-                print(f"       🚨 Quarantined {tar_file.name}: hitsmisses had only {len(df)} rows, moved to quarantine")
+            if len(df) != REQUIRED_HITSMISSES_ROWS:
+                reason = (
+                    f"hitsmisses row count {len(df)} != "
+                    f"{REQUIRED_HITSMISSES_ROWS}"
+                )
+                status_log.append(reason)
+                print(f"       🚨 {reason}; will quarantine")
 
                 # Optionally, clear the hitsmisses.txt if needed
                 try:
@@ -886,10 +1051,35 @@ def extract_hitsmisses(tar_path, output_file, tar_file, status_log):
                 except Exception as e:
                     status_log.append(f"⚠️ Failed to remove hitsmisses.txt: {e}")
 
-                return False  # signal quarantine
+                return False, reason, quarantine_hitsmiss_dir
+
+            total_hits = df["hits"].sum()
+            total_misses = df["misses"].sum()
+
+            if total_hits > 0 and total_misses > total_hits * MAX_MISS_HIT_RATIO:
+                reason = (
+                    "misses too high "
+                    f"({total_misses} > {MAX_MISS_HIT_RATIO:g}x {total_hits})"
+                )
+                status_log.append(reason)
+                print(f"       🚨 {reason}; will quarantine")
+
+                try:
+                    if output_file.exists():
+                        os.remove(output_file)
+                        status_log.append("Removed hitsmisses.txt due to quarantine")
+                except Exception as e:
+                    status_log.append(f"âš ï¸ Failed to remove hitsmisses.txt: {e}")
+
+                return False, reason, quarantine_raisingfactor_dir
+        else:
+            reason = "hitsmisses.txt not found in TAR"
+            status_log.append(reason)
+            print(f"       âš ï¸ hitsmisses.txt not found in {tar_file.name}")
+            return False, reason, quarantine_hitsmiss_dir
     elapsed_time = timer() - start
     print(f"       ✅ Done in {elapsed_time:.2f} seconds.")
-    return True
+    return True, None, None
 
 
 
@@ -1158,14 +1348,14 @@ import pandas as pd
 
 ####SET BARS
 DEFAULT_TAXA_THRESHOLDS = {
-    "diatom-setae": {"upper_threshold": 0.80, "diff_threshold": 0.50},
-    "dinoflagellate_noctiluca-intact": {"upper_threshold": 0.10, "diff_threshold": 0.09},
+    "diatom-setae": {"upper_threshold": 0.999, "diff_threshold": 0.99},
+    "dinoflagellate_noctiluca-intact": {"upper_threshold": 0.99, "diff_threshold": 0.99},
 }
 
-BUBBLES_RULE = {"upper_threshold": 0.10, "diff_threshold": 0.09}
+BUBBLES_RULE = {"upper_threshold": 0.999, "diff_threshold": 0.99}
 BUBBLES_SUBSTR = "bubbles"
 
-DETRITUS_RULE = {"upper_threshold": 0.10, "diff_threshold": 0.09}
+DETRITUS_RULE = {"upper_threshold": 0.999, "diff_threshold": 0.99}
 DETRITUS_SUBSTR = "noctiluca"
 
 
@@ -1205,8 +1395,16 @@ def generate_topspecies_csv(json_path,
     rows = []
     for entry in data_list:
         filepath = entry.get("filepath", "")
-        labels = entry.get("top3_labels", [])
-        probs = entry.get("top3_probs", [])
+        labels = (
+            entry.get(f"top{TOP_K}_labels", [])
+            or entry.get("top3_labels", [])
+            or entry.get("top2_labels", [])
+        )
+        probs = (
+            entry.get(f"top{TOP_K}_probs", [])
+            or entry.get("top3_probs", [])
+            or entry.get("top2_probs", [])
+        )
         taxa = entry.get("taxa", "")  # Assuming taxa is in the entry
 
         # Coerce "labels/probs" in case they're comma-separated strings
@@ -1227,8 +1425,8 @@ def generate_topspecies_csv(json_path,
         prob2 = float(probs[1])
 
         # defaults
-        upper_threshold = 0.95
-        diff_threshold = 0.60
+        upper_threshold = 0.999
+        diff_threshold = 0.99
 
         # choose thresholds (exact match first)
         if taxa in taxa_thresholds:
@@ -1242,11 +1440,6 @@ def generate_topspecies_csv(json_path,
                 (isinstance(label, str) and DETRITUS_SUBSTR in label.lower()):
             upper_threshold = DETRITUS_RULE["upper_threshold"]
             diff_threshold = DETRITUS_RULE["diff_threshold"]
-
-        # 2) otherwise try exact per-taxon thresholds (your existing dict)
-        elif taxa in taxa_thresholds:
-            upper_threshold = taxa_thresholds[taxa].get("upper_threshold", upper_threshold)
-            diff_threshold = taxa_thresholds[taxa].get("diff_threshold", diff_threshold)
 
         # Conditionally append _AI99 based on taxa-specific thresholds
         if prob1 > upper_threshold and (prob1 - prob2) > diff_threshold:
@@ -1431,7 +1624,11 @@ def log_per_minute_metrics(tar_name, json_output, hits_file, exif_df, out_dir, n
 
             for entry in data:
                 fname = os.path.basename(entry.get("filepath", ""))
-                labels = entry.get("top3_labels", [])
+                labels = (
+                    entry.get(f"top{TOP_K}_labels", [])
+                    or entry.get("top3_labels", [])
+                    or entry.get("top2_labels", [])
+                )
                 if isinstance(labels, str):
                     labels = [s.strip() for s in labels.split(",")]
 
@@ -1590,14 +1787,24 @@ def process_tar(tar_file):
         # === Step 3: Extract hitsmisses.txt ===
         start_time = time.time()
         if not hits_path.exists():
-            ok = extract_hitsmisses(tar_file, hits_path, tar_file, status_log)
+            ok, hitsmiss_reason, hitsmiss_quarantine_dir = extract_hitsmisses(
+                tar_file,
+                hits_path,
+                tar_file,
+                status_log,
+            )
             if not ok:
                 quarantined = True
-                quarantine_reason = "hits/misses row count != 10"
+                quarantine_reason = hitsmiss_reason or "hits/misses check failed"
                 status_log.append(f"Quarantined: {quarantine_reason}")
-                quarantine_target = quarantine_hitsmiss_dir / tar_file.name
+                quarantine_target = (hitsmiss_quarantine_dir or quarantine_hitsmiss_dir) / tar_file.name
                 try:
-                    shutil.move(str(tar_file), str(quarantine_target))
+                    if quarantine_target.exists():
+                        quarantine_target.unlink()
+                    if tar_file.exists():
+                        shutil.move(str(tar_file), str(quarantine_target))
+                        status_log.append(f"Moved TAR to quarantine: {quarantine_target}")
+                    remove_partial_outputs(tar_name, status_log)
                 except Exception as mv_err:
                     status_log.append(f"⚠️ Quarantine move failed: {mv_err}")
         else:
@@ -1636,6 +1843,7 @@ def process_tar(tar_file):
                 quarantine_target = quarantine_bubbles_dir / tar_file.name
                 try:
                     shutil.move(str(tar_file), str(quarantine_target))
+                    remove_partial_outputs(tar_name, status_log)
                     print(f"🚨 Quarantined {tar_file.name} → bubble issue")
                 except Exception as mv_err:
                     status_log.append(f"⚠️ Quarantine move failed: {mv_err}")
@@ -1686,6 +1894,47 @@ def process_tar(tar_file):
                     #    print("⚠️ EXIF DataFrame is empty or missing columns")
 
                 times_dict["Extract and save EXIF metadata"] = track_time(start_time, "Extract and save EXIF metadata")
+
+                # Step 8b: GPS quarantine checks
+                if not has_usable_coordinates(exif_df):
+                    quarantined = True
+                    quarantine_reason = "no usable GPS coordinates"
+                    quarantine_target = quarantine_nogps_dir / tar_file.name
+
+                    try:
+                        if quarantine_target.exists():
+                            quarantine_target.unlink()
+                        if tar_file.exists():
+                            shutil.move(str(tar_file), str(quarantine_target))
+                            status_log.append(f"Moved to quarantine-nogps: {quarantine_reason}")
+                            print(f"🚨 Quarantined {tar_file.name}: no usable GPS coordinates")
+                        remove_partial_outputs(tar_name, status_log)
+                    except Exception as mv_err:
+                        status_log.append(f"⚠️ No-GPS quarantine move failed: {mv_err}")
+
+                elif should_quarantine_location(exif_df):
+                    quarantined = True
+                    quarantine_reason = "within GPS quarantine radius"
+                    quarantine_target = quarantine_near_point_dir / tar_file.name
+
+                    try:
+                        if quarantine_target.exists():
+                            quarantine_target.unlink()
+                        if tar_file.exists():
+                            shutil.move(str(tar_file), str(quarantine_target))
+                            status_log.append(
+                                f"Moved to quarantine-location: {quarantine_reason}"
+                            )
+                            print(
+                                f"🚨 Quarantined {tar_file.name}: collected within "
+                                f"{QUARANTINE_RADIUS_M:g} m of quarantine point"
+                            )
+                        remove_partial_outputs(tar_name, status_log)
+                    except Exception as mv_err:
+                        status_log.append(f"⚠️ Location quarantine move failed: {mv_err}")
+
+                if quarantined:
+                    return
 
                 # Step 9: Classification & morphology
                 start_time = time.time()
